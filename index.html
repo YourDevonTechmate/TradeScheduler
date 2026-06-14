@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TradeScheduler">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 192 192\"><rect width=\"192\" height=\"192\" rx=\"32\" fill=\"%230f172a\"/><text x=\"96\" y=\"110\" text-anchor=\"middle\" font-size=\"80\" fill=\"%23f59e0b\" font-family=\"sans-serif\" font-weight=\"bold\">⚡</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230f172a'/><text x='96' y='110' text-anchor='middle' font-size='80' fill='%23f59e0b' font-family='sans-serif' font-weight='bold'>⚡</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>TradeScheduler — Job Scheduling App</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -137,6 +137,14 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .dot-completed{background:var(--green)}
 .dot-cancelled{background:var(--red)}
 .dot-gps{background:#fff;border:2px solid var(--blue)}
+
+
+/* GPS pulse animation */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
+  70% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
+  100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
 
 /* Leaflet dark overrides */
 .leaflet-container{background:var(--bg)}
@@ -389,8 +397,6 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 // ── DATA ──
 const DAYS = ['mon','tue','wed','thu','fri'];
 const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri'];
-const STATUSES = ['pending','dispatched','in-progress','completed','cancelled'];
-
 function loadData(){
   try{
     const d = JSON.parse(localStorage.getItem('tradescheduler')||'{}');
@@ -656,14 +662,16 @@ function grabGPSForJob(){
 
 function saveJob(){
   const editId=document.getElementById('jobEditId').value;
-  const latVal=document.getElementById('jobLat').value;
-  const lngVal=document.getElementById('jobLng').value;
+  const latRaw=document.getElementById('jobLat').value.trim();
+  const lngRaw=document.getElementById('jobLng').value.trim();
+  const latVal=latRaw&&!isNaN(parseFloat(latRaw))?parseFloat(latRaw):null;
+  const lngVal=lngRaw&&!isNaN(parseFloat(lngRaw))?parseFloat(lngRaw):null;
   const jobData={
     title:document.getElementById('jobTitle').value.trim(),
     client:document.getElementById('jobClient').value.trim(),
     address:document.getElementById('jobAddress').value.trim(),
-    lat:latVal?parseFloat(latVal):null,
-    lng:lngVal?parseFloat(lngVal):null,
+    lat:latVal,
+    lng:lngVal,
     workerId:document.getElementById('jobWorker').value,
     day:document.getElementById('jobDay').value,
     status:document.getElementById('jobStatus').value,
@@ -794,7 +802,7 @@ function switchView(view){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   document.querySelectorAll('.nav-tabs button').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.nav-tabs button').forEach(b=>{if(b.textContent.toLowerCase().includes(view))b.classList.add('active')});
+  document.querySelectorAll('.nav-tabs button').forEach(b=>{const t=b.textContent.toLowerCase();if((view==='home'&&t.includes('home'))||(view==='app'&&t.includes('app')))b.classList.add('active')});
   if(view==='app'){
     renderAll();
     setAppView(data.appView);
