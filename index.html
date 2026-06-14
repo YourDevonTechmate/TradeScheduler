@@ -2,352 +2,659 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>TradeScheduler — Job scheduling built by a tradesman, for tradesmen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>TradeScheduler — Job Scheduling App</title>
 <style>
-  :root {
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --surface2: #334155;
-    --text: #f1f5f9;
-    --text2: #94a3b8;
-    --accent: #f59e0b;
-    --accent2: #d97706;
-    --green: #10b981;
-    --red: #ef4444;
-    --blue: #3b82f6;
-    --radius: 12px;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+:root {
+  --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+  --text: #f1f5f9; --text2: #94a3b8; --accent: #f59e0b; --accent2: #d97706;
+  --green: #10b981; --red: #ef4444; --blue: #3b82f6; --radius: 10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.5;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none;
+}
 
-  /* Nav */
-  nav {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(15,23,42,0.95); backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--surface2);
-    padding: 12px 0;
-  }
-  nav .container { display: flex; align-items: center; justify-content: space-between; }
-  .logo { font-size: 1.4rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
-  .nav-links { display: flex; gap: 24px; list-style: none; }
-  .nav-links a { color: var(--text2); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--text); }
-  .hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.6rem; cursor: pointer; padding: 8px; min-width: 44px; min-height: 44px; }
-  .mobile-menu {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--bg); z-index: 200; flex-direction: column; align-items: center;
-    justify-content: center; gap: 32px;
-  }
-  .mobile-menu.open { display: flex; }
-  .mobile-menu a { color: var(--text); text-decoration: none; font-size: 1.3rem; font-weight: 600; }
-  .mobile-menu .close-btn {
-    position: absolute; top: 20px; right: 20px;
-    background: none; border: none; color: var(--text); font-size: 2rem;
-    cursor: pointer; min-width: 44px; min-height: 44px;
-  }
+/* Nav */
+nav{
+  position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.95);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--surface2);padding:10px 0;
+}
+nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.2rem;font-weight:800;color:var(--accent)}
+.nav-tabs{display:flex;gap:4px;list-style:none}
+.nav-tabs button{
+  background:none;border:none;color:var(--text2);font-size:0.85rem;font-weight:600;
+  padding:8px 16px;border-radius:20px;cursor:pointer;min-height:40px;transition:all 0.2s
+}
+.nav-tabs button.active{background:var(--accent);color:#0f172a}
+.nav-tabs button:hover:not(.active){color:var(--text)}
 
-  /* Hero */
-  .hero { padding: 80px 0 60px; text-align: center; }
-  .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
-  .hero h1 span { color: var(--accent); }
-  .hero p { font-size: 1.15rem; color: var(--text2); max-width: 600px; margin: 0 auto 32px; }
-  .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 14px 28px; border-radius: var(--radius); font-weight: 600;
-    font-size: 1rem; text-decoration: none; cursor: pointer;
-    border: none; transition: all 0.2s; min-height: 48px;
-  }
-  .btn-primary { background: var(--accent); color: #0f172a; }
-  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
-  .btn-outline { background: transparent; color: var(--text); border: 2px solid var(--surface2); }
-  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+/* Views */
+.view{display:none;max-width:1100px;margin:0 auto;padding:16px}
+.view.active{display:block}
 
-  /* Sections */
-  section { padding: 80px 0; }
-  .section-label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
-  .section-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; margin-bottom: 16px; }
-  .section-sub { color: var(--text2); font-size: 1.05rem; max-width: 600px; margin-bottom: 48px; }
+/* Home View */
+.hero{text-align:center;padding:40px 0}
+.hero h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;line-height:1.2;margin-bottom:12px}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text2);font-size:1rem;max-width:500px;margin:0 auto 24px}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:12px 24px;
+  border-radius:var(--radius);font-weight:600;font-size:0.95rem;
+  text-decoration:none;cursor:pointer;border:none;min-height:44px;transition:all 0.2s
+}
+.btn-primary{background:var(--accent);color:#0f172a}
+.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:transparent;color:var(--text);border:2px solid var(--surface2)}
+.btn-outline:hover{border-color:var(--accent)}
+.btn-sm{padding:8px 14px;font-size:0.8rem;min-height:36px}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{opacity:0.85}
+.btn-green{background:var(--green);color:#fff}
 
-  /* Feature Grid */
-  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-  .feature-card {
-    background: var(--surface); border: 1px solid var(--surface2);
-    border-radius: var(--radius); padding: 28px;
-    transition: transform 0.2s, border-color 0.2s;
-  }
-  .feature-card:hover { transform: translateY(-4px); border-color: var(--accent); }
-  .feature-icon { font-size: 2rem; margin-bottom: 16px; }
-  .feature-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
-  .feature-card p { color: var(--text2); font-size: 0.9rem; }
-  .feature-badge {
-    display: inline-block; background: var(--accent); color: #0f172a;
-    font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;
-    margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;
-  }
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;padding:40px 0}
+.fcard{background:var(--surface);border:1px solid var(--surface2);border-radius:var(--radius);padding:20px}
+.fcard .icon{font-size:1.6rem;margin-bottom:10px}
+.fcard h3{font-size:1rem;font-weight:700;margin-bottom:6px}
+.fcard p{color:var(--text2);font-size:0.85rem}
 
-  /* Comparison Table */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -20px; padding: 0 20px; }
-  table { width: 100%; border-collapse: collapse; min-width: 600px; }
-  th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--surface2); }
-  th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); font-weight: 600; }
-  td { font-size: 0.9rem; }
-  .check { color: var(--green); font-weight: 700; }
-  .cross { color: var(--red); }
-  .highlight-col { background: rgba(245,158,11,0.08); }
-  .highlight-col th { color: var(--accent); }
+/* App View - Calendar */
+.app-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.week-nav{display:flex;align-items:center;gap:8px}
+.week-nav button{background:var(--surface);border:1px solid var(--surface2);color:var(--text);padding:8px 12px;border-radius:var(--radius);cursor:pointer;min-height:40px;font-size:0.9rem}
+.week-label{font-weight:700;font-size:0.95rem;min-width:140px;text-align:center}
 
-  /* Pricing */
-  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
-  .pricing-card {
-    background: var(--surface); border: 1px solid var(--surface2);
-    border-radius: var(--radius); padding: 32px; text-align: center;
-    transition: transform 0.2s, border-color 0.2s;
-  }
-  .pricing-card:hover { transform: translateY(-4px); }
-  .pricing-card.featured { border-color: var(--accent); position: relative; }
-  .pricing-card.featured::before {
-    content: 'Most Popular'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-    background: var(--accent); color: #0f172a; font-size: 0.75rem; font-weight: 700;
-    padding: 6px 16px; border-radius: 20px; white-space: nowrap;
-  }
-  .pricing-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
-  .pricing-price { font-size: 2.5rem; font-weight: 800; margin: 12px 0; }
-  .pricing-price span { font-size: 1rem; color: var(--text2); font-weight: 400; }
-  .pricing-desc { color: var(--text2); font-size: 0.85rem; margin-bottom: 20px; }
-  .pricing-features { list-style: none; text-align: left; margin-bottom: 24px; }
-  .pricing-features li { padding: 6px 0; font-size: 0.9rem; }
-  .pricing-features li::before { content: '✓ '; color: var(--green); font-weight: 700; }
+.calendar-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
+.calendar{display:grid;gap:2px;min-width:700px;background:var(--surface2);border-radius:var(--radius);overflow:hidden}
+.cal-header{background:var(--surface);padding:10px 8px;text-align:center;font-weight:700;font-size:0.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+.cal-header.today{color:var(--accent)}
+.cal-row-label{
+  background:var(--surface);padding:10px 8px;display:flex;align-items:center;
+  font-weight:700;font-size:0.85rem;gap:6px;min-width:80px
+}
+.cal-row-label .worker-pin{font-size:0.7rem;color:var(--text2);font-weight:400}
+.cal-cell{
+  background:var(--surface);min-height:80px;padding:4px;position:relative;
+  transition:background 0.15s
+}
+.cal-cell.drag-over{background:rgba(245,158,11,0.15)}
+.cal-cell.empty{display:flex;align-items:center;justify-content:center}
+.cal-cell.empty::after{content:'Drop job here';color:var(--surface2);font-size:0.75rem;pointer-events:none}
 
-  /* CTA */
-  .cta { text-align: center; padding: 100px 0; }
-  .cta h2 { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; margin-bottom: 12px; }
-  .cta p { color: var(--text2); margin-bottom: 32px; font-size: 1.1rem; }
+.job-card{
+  background:var(--bg);border:1px solid var(--surface2);border-radius:6px;
+  padding:8px 10px;margin-bottom:4px;cursor:grab;font-size:0.8rem;
+  transition:transform 0.1s,box-shadow 0.1s;position:relative
+}
+.job-card:active{cursor:grabbing}
+.job-card.dragging{opacity:0.5;transform:scale(0.95)}
+.job-card .job-title{font-weight:700;margin-bottom:2px}
+.job-card .job-client{color:var(--text2);font-size:0.75rem}
+.job-card .job-status{
+  display:inline-block;font-size:0.65rem;font-weight:700;padding:2px 6px;
+  border-radius:10px;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px
+}
+.status-pending{background:rgba(148,163,184,0.2);color:var(--text2)}
+.status-dispatched{background:rgba(59,130,246,0.2);color:var(--blue)}
+.status-in-progress{background:rgba(245,158,11,0.2);color:var(--accent)}
+.status-completed{background:rgba(16,185,129,0.2);color:var(--green)}
+.status-cancelled{background:rgba(239,68,68,0.2);color:var(--red)}
 
-  /* Footer */
-  footer { border-top: 1px solid var(--surface2); padding: 32px 0; text-align: center; color: var(--text2); font-size: 0.85rem; }
+.unassigned-pool{margin-top:16px}
+.unassigned-pool h3{font-size:0.9rem;color:var(--text2);margin-bottom:8px}
+.pool-jobs{display:flex;flex-wrap:wrap;gap:8px;min-height:50px;padding:8px;background:var(--surface);border:1px dashed var(--surface2);border-radius:var(--radius)}
+.pool-jobs .job-card{min-width:160px;max-width:200px}
 
-  /* Mobile */
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    .hamburger { display: block; }
-    .hero { padding: 60px 0 40px; }
-    section { padding: 60px 0; }
-    .features-grid { grid-template-columns: 1fr; }
-    .pricing-grid { grid-template-columns: 1fr; }
-    .hero-buttons { flex-direction: column; align-items: center; }
-    .btn { width: 100%; max-width: 320px; justify-content: center; }
-  }
-  @media (max-width: 380px) {
-    .hero h1 { font-size: 1.6rem; }
-    .section-title { font-size: 1.3rem; }
-    .pricing-price { font-size: 2rem; }
-  }
+/* Modals */
+.modal-overlay{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.7);z-index:300;align-items:center;justify-content:center;padding:20px
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--surface2);border-radius:var(--radius);
+  padding:24px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto
+}
+.modal h2{font-size:1.2rem;font-weight:700;margin-bottom:16px}
+.modal label{display:block;font-size:0.8rem;color:var(--text2);margin-bottom:4px;margin-top:12px}
+.modal input,.modal select,.modal textarea{
+  width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--surface2);
+  border-radius:6px;color:var(--text);font-size:0.9rem;font-family:inherit;
+  -webkit-appearance:none
+}
+.modal textarea{min-height:80px;resize:vertical}
+.modal input:focus,.modal select:focus,.modal textarea:focus{outline:none;border-color:var(--accent)}
+.modal-btns{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+
+/* Job Detail Panel */
+.job-detail{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:250;
+  background:var(--surface);border-top:2px solid var(--accent);border-radius:16px 16px 0 0;
+  padding:20px;max-height:70vh;overflow-y:auto;box-shadow:0 -8px 32px rgba(0,0,0,0.4)
+}
+.job-detail.open{display:block}
+.job-detail h3{font-size:1.1rem;margin-bottom:4px}
+.job-detail .client{color:var(--text2);margin-bottom:12px}
+.job-detail .detail-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.job-detail .detail-item{flex:1;min-width:100px}
+.job-detail .detail-label{font-size:0.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+.job-detail .detail-value{font-size:0.9rem;font-weight:600}
+.job-detail .notes-box{background:var(--bg);border-radius:6px;padding:12px;margin:12px 0;font-size:0.85rem;color:var(--text2)}
+.job-detail .chat-msg{background:var(--bg);border-radius:8px;padding:8px 12px;margin:4px 0;font-size:0.8rem}
+.job-detail .chat-input-row{display:flex;gap:8px;margin-top:8px}
+.job-detail .chat-input-row input{flex:1}
+
+/* GPS */
+.gps-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-radius:var(--radius);margin-bottom:12px;font-size:0.8rem}
+.gps-bar .coords{color:var(--green);font-family:monospace;font-size:0.75rem}
+.gps-bar .error{color:var(--red)}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:400;
+  background:var(--green);color:#fff;padding:10px 20px;border-radius:20px;
+  font-size:0.85rem;font-weight:600;opacity:0;transition:opacity 0.3s;pointer-events:none
+}
+.toast.show{opacity:1}
+.toast.error{background:var(--red)}
+
+/* Mobile */
+@media(max-width:768px){
+  .features-grid{grid-template-columns:1fr}
+  .hero-btns{flex-direction:column;align-items:center}
+  .btn{width:100%;max-width:300px;justify-content:center}
+  .calendar-wrap{margin:0 -8px;padding:0 8px}
+  .modal{max-width:100%;margin:0 8px}
+}
+@media(max-width:380px){
+  .hero h1{font-size:1.4rem}
+  .nav-tabs button{font-size:0.75rem;padding:6px 10px}
+}
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="container">
+  <div class="inner">
     <div class="logo">⚡ TradeScheduler</div>
-    <ul class="nav-links">
-      <li><a href="#features">Features</a></li>
-      <li><a href="#compare">Compare</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-      <li><a href="#cta">Get Started</a></li>
-    </ul>
-    <button class="hamburger" onclick="document.getElementById('mobileMenu').classList.add('open');document.body.style.overflow='hidden'">☰</button>
+    <div class="nav-tabs">
+      <button class="active" onclick="switchView('home')">Home</button>
+      <button onclick="switchView('app')">App</button>
+    </div>
   </div>
 </nav>
 
-<div class="mobile-menu" id="mobileMenu">
-  <button class="close-btn" onclick="document.getElementById('mobileMenu').classList.remove('open');document.body.style.overflow=''">✕</button>
-  <a href="#features" onclick="closeMenu()">Features</a>
-  <a href="#compare" onclick="closeMenu()">Compare</a>
-  <a href="#pricing" onclick="closeMenu()">Pricing</a>
-  <a href="#cta" onclick="closeMenu()">Get Started</a>
-</div>
-
-<section class="hero">
-  <div class="container">
+<!-- HOME VIEW -->
+<div class="view active" id="view-home">
+  <div class="hero">
     <h1>Job scheduling <span>built by a tradesman</span>, for tradesmen</h1>
-    <p>Drag-and-drop calendar. GPS check-in. Team chat. No bloated enterprise crap — just what actually works on site.</p>
-    <div class="hero-buttons">
-      <a href="#pricing" class="btn btn-primary">🚀 Start Free</a>
+    <p>Drag-and-drop calendar. GPS check-in. Team chat. No bloated enterprise crap.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="switchView('app')">🚀 Launch Demo</button>
       <a href="#features" class="btn btn-outline">See Features</a>
     </div>
   </div>
-</section>
+  <div class="features-grid" id="features">
+    <div class="fcard"><div class="icon">📍</div><h3>GPS Check-in</h3><p>Worker clocks in — GPS pin proves they're on site. Geofence alerts.</p></div>
+    <div class="fcard"><div class="icon">💬</div><h3>Team Chat</h3><p>Per-job messaging. No emoji, no GIFs — it's a tool, not WhatsApp.</p></div>
+    <div class="fcard"><div class="icon">🔄</div><h3>Shift Swaps</h3><p>Worker requests swap → coworker accepts → admin approves. No 6am calls.</p></div>
+    <div class="fcard"><div class="icon">💰</div><h3>Job Costing</h3><p>Revenue − Labour − Materials = Margin. Auto-calculated from GPS hours.</p></div>
+    <div class="fcard"><div class="icon">📅</div><h3>Drag & Drop</h3><p>Move jobs between workers on a week view. Just drag it.</p></div>
+    <div class="fcard"><div class="icon">🔐</div><h3>PIN Login</h3><p>4-digit PIN. No email, no password. Built for blokes on site.</p></div>
+    <div class="fcard"><div class="icon">🗺️</div><h3>OpenStreetMap</h3><p>Free maps forever. No Google API keys, no monthly bills.</p></div>
+    <div class="fcard"><div class="icon">📊</div><h3>Job Status</h3><p>Pending → Dispatched → In Progress → Completed. Full visibility.</p></div>
+  </div>
+</div>
 
-<section id="features">
-  <div class="container">
-    <div class="section-label">Features</div>
-    <h2 class="section-title">Everything you need. Nothing you don't.</h2>
-    <p class="section-sub">Built from real site experience. Every feature solves a problem a tradesman actually has.</p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <span class="feature-badge">v4 New</span>
-        <div class="feature-icon">📍</div>
-        <h3>GPS Check-in</h3>
-        <p>Worker taps "Clock In" — phone grabs GPS. Admin sees a map pin. No more "yeah mate I'm on site" when they're still in bed. Geofence alerts if they're 500m off. Works offline.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-badge">v4 New</span>
-        <div class="feature-icon">💬</div>
-        <h3>Team Chat</h3>
-        <p>Per-job chat threads. Worker messages "Need more cement" — admin sees it instantly. Read receipts. No emoji, no GIFs — it's a tool, not WhatsApp.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-badge">v4 New</span>
-        <div class="feature-icon">🔄</div>
-        <h3>Shift Swaps</h3>
-        <p>Worker requests Friday off. System shows available coworkers. Swap accepted → admin approves → calendar updates. No more 6am phone calls.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-badge">v4 New</span>
-        <div class="feature-icon">💰</div>
-        <h3>Job Costing</h3>
-        <p>Revenue £850 − Labour £320 − Materials £110 = Margin £420. Auto-calculated from GPS hours. Flag jobs bleeding money. Export to CSV for your accountant.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-badge">v3</span>
-        <div class="feature-icon">📅</div>
-        <h3>Drag & Drop Calendar</h3>
-        <p>Move jobs between workers on a week view. Drag a job card from Dave to Steve — done. No menus, no forms, just drag it.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-badge">v3</span>
-        <div class="feature-icon">🔐</div>
-        <h3>Worker PIN Login</h3>
-        <p>No email, no password. Workers get a 4-digit PIN. They type it, they're in. Built for blokes who can't remember their own phone number.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-badge">v3</span>
-        <div class="feature-icon">🗺️</div>
-        <h3>OpenStreetMap</h3>
-        <p>Free maps. No Google API keys. No monthly bills. Job locations on a proper map with status colours. Leaflet + OSM — open-source, forever free.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-badge">v3</span>
-        <div class="feature-icon">📊</div>
-        <h3>Job Status Tracking</h3>
-        <p>Pending → Dispatched → In Progress → Completed → Cancelled. Every job has a status. Admin sees exactly what's happening across all sites.</p>
-      </div>
+<!-- APP VIEW -->
+<div class="view" id="view-app">
+  <div class="app-header">
+    <div class="week-nav">
+      <button onclick="prevWeek()">◀</button>
+      <div class="week-label" id="weekLabel"></div>
+      <button onclick="nextWeek()">▶</button>
+      <button onclick="goToday()">Today</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="openJobModal()">+ Job</button>
+      <button class="btn btn-outline btn-sm" onclick="openWorkerModal()">+ Worker</button>
+      <button class="btn btn-outline btn-sm" onclick="resetDemo()">Reset</button>
     </div>
   </div>
-</section>
 
-<section id="compare">
-  <div class="container">
-    <div class="section-label">Comparison</div>
-    <h2 class="section-title">How we stack up</h2>
-    <p class="section-sub">TradeScheduler does what the big players do — at a fraction of the cost. And it was built by someone who's actually held a trowel.</p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Feature</th>
-            <th>Connect Team</th>
-            <th>QuickBooks</th>
-            <th>Clock Shark</th>
-            <th class="highlight-col">TradeScheduler</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Shift scheduling</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>Drag-drop calendar</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>Worker PIN login</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>OpenStreetMap (free)</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>GPS check-in</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>Team chat</td><td class="check">✓</td><td class="cross">✗</td><td class="check">✓</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>Shift swaps</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>Job costing</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="highlight-col check">✓</td></tr>
-          <tr><td>Free tier</td><td class="check">✓ (10)</td><td class="cross">✗</td><td class="cross">✗</td><td class="highlight-col check">✓ (5)</td></tr>
-          <tr><td>Payroll integration</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="highlight-col cross">✗</td></tr>
-        </tbody>
-      </table>
+  <div class="gps-bar" id="gpsBar">
+    <span>📍 GPS:</span>
+    <span class="coords" id="gpsCoords">Tap to check in</span>
+    <button class="btn btn-sm btn-primary" onclick="gpsCheckIn()" style="margin-left:auto">Check In</button>
+  </div>
+
+  <div class="calendar-wrap">
+    <div class="calendar" id="calendar"></div>
+  </div>
+
+  <div class="unassigned-pool">
+    <h3>📋 Unassigned Jobs</h3>
+    <div class="pool-jobs" id="poolJobs"
+         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handlePoolDrop(event)">
     </div>
   </div>
-</section>
+</div>
 
-<section id="pricing">
-  <div class="container">
-    <div class="section-label">Pricing</div>
-    <h2 class="section-title">Simple, honest pricing</h2>
-    <p class="section-sub">No per-user gouging. No hidden fees. Free tier so you can try it properly.</p>
-    <div class="pricing-grid">
-      <div class="pricing-card">
-        <div class="pricing-name">Starter</div>
-        <div class="pricing-price">£0<span>/mo</span></div>
-        <div class="pricing-desc">For small crews getting organised</div>
-        <ul class="pricing-features">
-          <li>Up to 5 workers</li>
-          <li>Basic scheduling</li>
-          <li>GPS check-in</li>
-          <li>Team chat</li>
-          <li>OpenStreetMap</li>
-        </ul>
-        <a href="#" class="btn btn-outline" style="width:100%;justify-content:center">Start Free</a>
-      </div>
-      <div class="pricing-card featured">
-        <div class="pricing-name">Pro</div>
-        <div class="pricing-price">£30<span>/mo</span></div>
-        <div class="pricing-desc">For growing trade businesses</div>
-        <ul class="pricing-features">
-          <li>Up to 20 workers</li>
-          <li>Everything in Starter</li>
-          <li>Shift swaps</li>
-          <li>Job costing</li>
-          <li>Priority support</li>
-          <li>14-day free trial</li>
-        </ul>
-        <a href="#" class="btn btn-primary" style="width:100%;justify-content:center">Try Pro Free</a>
-      </div>
-      <div class="pricing-card">
-        <div class="pricing-name">Business</div>
-        <div class="pricing-price">£60<span>/mo</span></div>
-        <div class="pricing-desc">For established firms scaling up</div>
-        <ul class="pricing-features">
-          <li>Unlimited workers</li>
-          <li>Everything in Pro</li>
-          <li>API access</li>
-          <li>Custom branding</li>
-          <li>QuickBooks export</li>
-        </ul>
-        <a href="#" class="btn btn-outline" style="width:100%;justify-content:center">Get Business</a>
-      </div>
+<!-- JOB MODAL -->
+<div class="modal-overlay" id="jobModalOverlay">
+  <div class="modal">
+    <h2 id="jobModalTitle">New Job</h2>
+    <input type="hidden" id="jobEditId">
+    <label>Job Title</label><input id="jobTitle" placeholder="e.g. Bathroom refit">
+    <label>Client Name</label><input id="jobClient" placeholder="e.g. Mrs Smith">
+    <label>Address</label><input id="jobAddress" placeholder="e.g. 12 High St, Exeter">
+    <label>Worker</label><select id="jobWorker"></select>
+    <label>Day</label><select id="jobDay"></select>
+    <label>Status</label><select id="jobStatus">
+      <option value="pending">Pending</option>
+      <option value="dispatched">Dispatched</option>
+      <option value="in-progress">In Progress</option>
+      <option value="completed">Completed</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+    <label>Notes</label><textarea id="jobNotes" placeholder="Job details, materials needed..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeJobModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="jobDeleteBtn" style="display:none;background:var(--red)" onclick="deleteJob()">Delete</button>
+      <button class="btn btn-primary btn-sm" onclick="saveJob()">Save</button>
     </div>
   </div>
-</section>
+</div>
 
-<section class="cta" id="cta">
-  <div class="container">
-    <h2>Built in Devon. Used on site.</h2>
-    <p>Not some Silicon Valley SaaS with a 40-page onboarding doc. A scheduling tool that actually makes sense when you're standing in the mud.</p>
-    <a href="#" class="btn btn-primary">🚀 Start Your Free Account</a>
+<!-- WORKER MODAL -->
+<div class="modal-overlay" id="workerModalOverlay">
+  <div class="modal">
+    <h2>Add Worker</h2>
+    <label>Name</label><input id="workerName" placeholder="e.g. Dave">
+    <label>PIN (4 digits)</label><input id="workerPin" type="number" placeholder="1234" maxlength="4" pattern="[0-9]{4}">
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeWorkerModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveWorker()">Save</button>
+    </div>
   </div>
-</section>
+</div>
 
-<footer>
-  <div class="container">
-    <p>© 2026 TradeScheduler — Built by <strong>Your Devon Tech Mate</strong>. East Devon & Exeter.</p>
+<!-- JOB DETAIL PANEL -->
+<div class="job-detail" id="jobDetail">
+  <div style="display:flex;justify-content:space-between;align-items:start">
+    <div>
+      <h3 id="detailTitle"></h3>
+      <div class="client" id="detailClient"></div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="closeJobDetail()">✕</button>
   </div>
-</footer>
+  <div class="detail-row">
+    <div class="detail-item"><div class="detail-label">Worker</div><div class="detail-value" id="detailWorker"></div></div>
+    <div class="detail-item"><div class="detail-label">Day</div><div class="detail-value" id="detailDay"></div></div>
+    <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value" id="detailStatus"></div></div>
+    <div class="detail-item"><div class="detail-label">Address</div><div class="detail-value" id="detailAddress"></div></div>
+  </div>
+  <div class="notes-box" id="detailNotes">No notes</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="btn btn-outline btn-sm" onclick="changeJobStatus('pending')">Mark Pending</button>
+    <button class="btn btn-outline btn-sm" onclick="changeJobStatus('dispatched')">Dispatch</button>
+    <button class="btn btn-outline btn-sm" onclick="changeJobStatus('in-progress')">In Progress</button>
+    <button class="btn btn-green btn-sm" onclick="changeJobStatus('completed')">Complete</button>
+    <button class="btn btn-danger btn-sm" onclick="changeJobStatus('cancelled')">Cancel Job</button>
+  </div>
+  <div style="margin-top:8px">
+    <div class="detail-label" style="margin-bottom:4px">Job Chat</div>
+    <div id="detailChat" style="max-height:150px;overflow-y:auto;margin-bottom:8px"></div>
+    <div class="chat-input-row">
+      <input id="chatInput" placeholder="Type a message...">
+      <button class="btn btn-primary btn-sm" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-function closeMenu() {
-  document.getElementById('mobileMenu').classList.remove('open');
-  document.body.style.overflow = '';
+// ── DATA ──
+const DAYS = ['mon','tue','wed','thu','fri'];
+const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri'];
+const STATUSES = ['pending','dispatched','in-progress','completed','cancelled'];
+
+function loadData(){
+  try{
+    const d = JSON.parse(localStorage.getItem('tradescheduler')||'{}');
+    return {
+      workers: d.workers || [{id:'w1',name:'Dave',pin:'1234'},{id:'w2',name:'Steve',pin:'5678'}],
+      jobs: d.jobs || [
+        {id:'j1',title:'Bathroom refit',client:'Mrs Smith',address:'12 High St, Exeter',workerId:'w1',day:'mon',status:'in-progress',notes:'Need to pick up tiles',chat:[]},
+        {id:'j2',title:'Kitchen plaster',client:'Mr Jones',address:'45 Fore St, Exmouth',workerId:'w2',day:'tue',status:'dispatched',notes:'',chat:[]},
+        {id:'j3',title:'Boiler service',client:'Landlord Ltd',address:'3 River Rd, Topsham',workerId:'',day:'',status:'pending',notes:'Annual check',chat:[]}
+      ],
+      weekOffset: d.weekOffset || 0
+    };
+  }catch(e){return {workers:[],jobs:[],weekOffset:0};}
 }
+function saveData(){localStorage.setItem('tradescheduler',JSON.stringify({workers:data.workers,jobs:data.jobs,weekOffset:data.weekOffset}))}
+
+let data = loadData();
+let detailJobId = null;
+
+// ── WEEK CALC ──
+function getMonday(d){d=new Date(d);const day=d.getDay();d.setDate(d.getDate()-(day||7)+1);d.setHours(0,0,0,0);return d}
+function getWeekDates(offset){
+  const now = new Date();const mon = getMonday(now);
+  mon.setDate(mon.getDate()+offset*7);
+  const dates=[];for(let i=0;i<5;i++){const d=new Date(mon);d.setDate(d.getDate()+i);dates.push(d)}
+  return dates;
+}
+function fmtDate(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}
+
+// ── RENDER ──
+function renderAll(){
+  renderCalendar();
+  renderPool();
+  updateWeekLabel();
+}
+
+function updateWeekLabel(){
+  const dates=getWeekDates(data.weekOffset);
+  document.getElementById('weekLabel').textContent=fmtDate(dates[0])+' – '+fmtDate(dates[4]);
+}
+
+function renderCalendar(){
+  const dates=getWeekDates(data.weekOffset);
+  const cal=document.getElementById('calendar');
+  const nCols=6; // label + 5 days
+  const nRows=1+data.workers.length; // header + workers
+
+  cal.style.gridTemplateColumns=`80px repeat(5, 1fr)`;
+
+  let html='';
+  // Header row
+  html+='<div class="cal-header" style="grid-column:1">Worker</div>';
+  for(let i=0;i<5;i++){
+    const cls=isToday(dates[i])?'cal-header today':'cal-header';
+    html+=`<div class="${cls}">${DAY_LABELS[i]}<br>${fmtDate(dates[i])}</div>`;
+  }
+  // Worker rows
+  data.workers.forEach(w=>{
+    html+=`<div class="cal-row-label">${w.name}<span class="worker-pin">PIN:${w.pin}</span></div>`;
+    for(let d=0;d<5;d++){
+      const day=DAYS[d];
+      const jobs=data.jobs.filter(j=>j.workerId===w.id&&j.day===day);
+      html+=`<div class="cal-cell" data-worker="${w.id}" data-day="${day}"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleCellDrop(event)">`;
+      if(jobs.length===0)html+='<div class="empty"></div>';
+      jobs.forEach(j=>html+=jobCardHTML(j));
+      html+='</div>';
+    }
+  });
+  cal.innerHTML=html;
+}
+
+function jobCardHTML(j){
+  const sc='status-'+j.status;
+  return `<div class="job-card" draggable="true" data-jobid="${j.id}"
+    ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)"
+    onclick="openJobDetail('${j.id}')">
+    <div class="job-title">${esc(j.title)}</div>
+    <div class="job-client">${esc(j.client)}</div>
+    <div class="job-status ${sc}">${j.status}</div>
+  </div>`;
+}
+
+function renderPool(){
+  const pool=document.getElementById('poolJobs');
+  const unassigned=data.jobs.filter(j=>!j.workerId||!j.day);
+  if(unassigned.length===0){pool.innerHTML='<div style="color:var(--text2);font-size:0.8rem;padding:12px">No unassigned jobs. Drag one here to unassign.</div>';return}
+  pool.innerHTML=unassigned.map(j=>jobCardHTML(j)).join('');
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ── DRAG & DROP ──
+let dragJobId=null;
+function handleDragStart(e){
+  dragJobId=e.target.closest('.job-card')?.dataset.jobid;
+  if(dragJobId)e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',dragJobId);
+}
+function handleDragEnd(e){e.target.classList.remove('dragging');dragJobId=null}
+function handleDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over')}
+function handleDragLeave(e){e.currentTarget.classList.remove('drag-over')}
+
+function handleCellDrop(e){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  const jobId=e.dataTransfer.getData('text/plain');
+  const workerId=e.currentTarget.dataset.worker;
+  const day=e.currentTarget.dataset.day;
+  moveJob(jobId,workerId,day);
+}
+function handlePoolDrop(e){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  const jobId=e.dataTransfer.getData('text/plain');
+  moveJob(jobId,'','');
+}
+
+function moveJob(jobId,workerId,day){
+  const job=data.jobs.find(j=>j.id===jobId);
+  if(!job)return;
+  job.workerId=workerId;
+  job.day=day;
+  if(workerId&&day&&job.status==='pending')job.status='dispatched';
+  saveData();renderAll();
+  toast('Job moved ✓');
+}
+
+// ── JOB MODAL ──
+function openJobModal(editId){
+  const overlay=document.getElementById('jobModalOverlay');
+  const title=document.getElementById('jobModalTitle');
+  const delBtn=document.getElementById('jobDeleteBtn');
+  document.getElementById('jobEditId').value=editId||'';
+  document.getElementById('jobTitle').value='';
+  document.getElementById('jobClient').value='';
+  document.getElementById('jobAddress').value='';
+  document.getElementById('jobNotes').value='';
+  document.getElementById('jobStatus').value='pending';
+
+  // Populate worker dropdown
+  const ws=document.getElementById('jobWorker');
+  ws.innerHTML='<option value="">Unassigned</option>'+data.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+
+  // Populate day dropdown
+  const ds=document.getElementById('jobDay');
+  ds.innerHTML='<option value="">Unassigned</option>'+DAYS.map((d,i)=>`<option value="${d}">${DAY_LABELS[i]}</option>`).join('');
+
+  if(editId){
+    const job=data.jobs.find(j=>j.id===editId);
+    if(job){
+      title.textContent='Edit Job';
+      delBtn.style.display='inline-flex';
+      document.getElementById('jobTitle').value=job.title;
+      document.getElementById('jobClient').value=job.client;
+      document.getElementById('jobAddress').value=job.address;
+      document.getElementById('jobWorker').value=job.workerId;
+      document.getElementById('jobDay').value=job.day;
+      document.getElementById('jobStatus').value=job.status;
+      document.getElementById('jobNotes').value=job.notes||'';
+    }
+  }else{
+    title.textContent='New Job';
+    delBtn.style.display='none';
+  }
+  overlay.classList.add('open');
+}
+
+function closeJobModal(){document.getElementById('jobModalOverlay').classList.remove('open')}
+
+function saveJob(){
+  const editId=document.getElementById('jobEditId').value;
+  const jobData={
+    title:document.getElementById('jobTitle').value.trim(),
+    client:document.getElementById('jobClient').value.trim(),
+    address:document.getElementById('jobAddress').value.trim(),
+    workerId:document.getElementById('jobWorker').value,
+    day:document.getElementById('jobDay').value,
+    status:document.getElementById('jobStatus').value,
+    notes:document.getElementById('jobNotes').value.trim()
+  };
+  if(!jobData.title){toast('Title required','error');return}
+
+  if(editId){
+    const job=data.jobs.find(j=>j.id===editId);
+    if(job){Object.assign(job,jobData)}
+  }else{
+    data.jobs.push({...jobData,id:'j'+Date.now(),chat:[]});
+  }
+  saveData();renderAll();closeJobModal();
+  toast(editId?'Job updated ✓':'Job created ✓');
+}
+
+function deleteJob(){
+  const editId=document.getElementById('jobEditId').value;
+  if(!editId)return;
+  data.jobs=data.jobs.filter(j=>j.id!==editId);
+  saveData();renderAll();closeJobModal();closeJobDetail();
+  toast('Job deleted');
+}
+
+// ── WORKER MODAL ──
+function openWorkerModal(){
+  document.getElementById('workerName').value='';
+  document.getElementById('workerPin').value='';
+  document.getElementById('workerModalOverlay').classList.add('open');
+}
+function closeWorkerModal(){document.getElementById('workerModalOverlay').classList.remove('open')}
+function saveWorker(){
+  const name=document.getElementById('workerName').value.trim();
+  const pin=document.getElementById('workerPin').value.trim();
+  if(!name){toast('Name required','error');return}
+  if(!pin||pin.length!==4||!/^\d{4}$/.test(pin)){toast('PIN must be 4 digits','error');return}
+  data.workers.push({id:'w'+Date.now(),name,pin});
+  saveData();renderAll();closeWorkerModal();
+  toast('Worker added ✓');
+}
+
+// ── JOB DETAIL PANEL ──
+function openJobDetail(jobId){
+  detailJobId=jobId;
+  const job=data.jobs.find(j=>j.id===jobId);
+  if(!job)return;
+  const panel=document.getElementById('jobDetail');
+  document.getElementById('detailTitle').textContent=job.title;
+  document.getElementById('detailClient').textContent=job.client;
+  const w=data.workers.find(w=>w.id===job.workerId);
+  document.getElementById('detailWorker').textContent=w?w.name:'Unassigned';
+  document.getElementById('detailDay').textContent=job.day?DAY_LABELS[DAYS.indexOf(job.day)]:'Unassigned';
+  document.getElementById('detailStatus').textContent=job.status;
+  document.getElementById('detailAddress').textContent=job.address||'—';
+  document.getElementById('detailNotes').textContent=job.notes||'No notes';
+  renderChat(job);
+  panel.classList.add('open');
+}
+function closeJobDetail(){document.getElementById('jobDetail').classList.remove('open');detailJobId=null}
+
+function changeJobStatus(status){
+  if(!detailJobId)return;
+  const job=data.jobs.find(j=>j.id===detailJobId);
+  if(!job)return;
+  job.status=status;
+  saveData();renderAll();openJobDetail(detailJobId);
+  toast('Status: '+status);
+}
+
+// ── CHAT ──
+function renderChat(job){
+  const chatDiv=document.getElementById('detailChat');
+  if(!job.chat||job.chat.length===0){chatDiv.innerHTML='<div style="color:var(--text2);font-size:0.8rem">No messages yet</div>';return}
+  chatDiv.innerHTML=job.chat.map(m=>{
+    const who=m.from==='admin'?'Admin':(data.workers.find(w=>w.id===m.from)?.name||'Worker');
+    return `<div class="chat-msg"><strong>${who}:</strong> ${esc(m.text)}<div style="font-size:0.65rem;color:var(--text2)">${new Date(m.time).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
+  }).join('');
+}
+function sendChat(){
+  if(!detailJobId)return;
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+  const job=data.jobs.find(j=>j.id===detailJobId);
+  if(!job)return;
+  if(!job.chat)job.chat=[];
+  job.chat.push({from:'admin',text,time:Date.now()});
+  saveData();renderChat(job);
+  input.value='';
+}
+
+// ── GPS ──
+function gpsCheckIn(){
+  const coordsEl=document.getElementById('gpsCoords');
+  if(!navigator.geolocation){coordsEl.textContent='Not supported';coordsEl.className='error';return}
+  coordsEl.textContent='Locating...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude.toFixed(5);
+    const lng=pos.coords.longitude.toFixed(5);
+    coordsEl.textContent=`${lat}, ${lng}`;
+    coordsEl.className='coords';
+    toast(`📍 Checked in at ${lat}, ${lng}`);
+    // If a job detail is open, add a chat message
+    if(detailJobId){
+      const job=data.jobs.find(j=>j.id===detailJobId);
+      if(job){
+        if(!job.chat)job.chat=[];
+        job.chat.push({from:'system',text:`GPS check-in: ${lat}, ${lng}`,time:Date.now()});
+        saveData();renderChat(job);
+      }
+    }
+  },err=>{
+    coordsEl.textContent='Denied / unavailable';
+    coordsEl.className='error';
+    toast('GPS access denied','error');
+  },{enableHighAccuracy:true,timeout:10000});
+}
+
+// ── WEEK NAV ──
+function prevWeek(){data.weekOffset--;saveData();renderAll()}
+function nextWeek(){data.weekOffset++;saveData();renderAll()}
+function goToday(){data.weekOffset=0;saveData();renderAll()}
+
+// ── VIEW SWITCH ──
+function switchView(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-tabs button').forEach(b=>{if(b.textContent.toLowerCase().includes(view))b.classList.add('active')});
+  if(view==='app')renderAll();
+}
+
+// ── RESET ──
+function resetDemo(){
+  if(!confirm('Reset all data to demo defaults?'))return;
+  localStorage.removeItem('tradescheduler');
+  data=loadData();
+  renderAll();
+  toast('Reset to demo data');
+}
+
+// ── TOAST ──
+let toastTimer;
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+(type||'');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ── INIT ──
+renderAll();
 </script>
 </body>
 </html>
