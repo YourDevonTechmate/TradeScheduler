@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="/TradeScheduler/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TradeScheduler">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 192 192\"><rect width=\"192\" height=\"192\" rx=\"32\" fill=\"%230f172a\"/><text x=\"96\" y=\"110\" text-anchor=\"middle\" font-size=\"80\" fill=\"%23f59e0b\" font-family=\"sans-serif\" font-weight=\"bold\">⚡</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>TradeScheduler — Job Scheduling App</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -819,6 +824,9 @@ function toast(msg,type){
 // ── INIT ──
 renderAll();
 setAppView(data.appView);
+</script>
+<script>
+if("serviceWorker" in navigator){navigator.serviceWorker.register("/TradeScheduler/sw.js").then(r=>console.log("SW registered")).catch(e=>console.log("SW failed",e))}
 </script>
 </body>
 </html>
