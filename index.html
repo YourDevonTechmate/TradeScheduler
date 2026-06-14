@@ -415,10 +415,15 @@ function loadData(){
   }catch(e){return {workers:[],jobs:[],weekOffset:0,appView:'calendar',gpsLat:null,gpsLng:null};}
 }
 function saveData(){
-  localStorage.setItem('tradescheduler',JSON.stringify({
-    workers:data.workers,jobs:data.jobs,weekOffset:data.weekOffset,
-    appView:data.appView,gpsLat:data.gpsLat,gpsLng:data.gpsLng
-  }))
+  try{
+    localStorage.setItem('tradescheduler',JSON.stringify({
+      workers:data.workers,jobs:data.jobs,weekOffset:data.weekOffset,
+      appView:data.appView,gpsLat:data.gpsLat,gpsLng:data.gpsLng
+    }))
+  }catch(e){
+    toast('Storage full — clear some data','error');
+    console.warn('localStorage quota exceeded',e);
+  }
 }
 
 let data = loadData();
