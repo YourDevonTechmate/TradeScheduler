@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>TradeScheduler — Job Scheduling App</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 :root {
   --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
@@ -18,7 +19,6 @@ body{
   -webkit-tap-highlight-color:transparent;overscroll-behavior:none;
 }
 
-/* Nav */
 nav{
   position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.95);
   backdrop-filter:blur(12px);border-bottom:1px solid var(--surface2);padding:10px 0;
@@ -33,11 +33,9 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .nav-tabs button.active{background:var(--accent);color:#0f172a}
 .nav-tabs button:hover:not(.active){color:var(--text)}
 
-/* Views */
 .view{display:none;max-width:1100px;margin:0 auto;padding:16px}
 .view.active{display:block}
 
-/* Home View */
 .hero{text-align:center;padding:40px 0}
 .hero h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;line-height:1.2;margin-bottom:12px}
 .hero h1 span{color:var(--accent)}
@@ -63,12 +61,21 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .fcard h3{font-size:1rem;font-weight:700;margin-bottom:6px}
 .fcard p{color:var(--text2);font-size:0.85rem}
 
-/* App View - Calendar */
-.app-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+/* App Header */
+.app-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}
 .week-nav{display:flex;align-items:center;gap:8px}
 .week-nav button{background:var(--surface);border:1px solid var(--surface2);color:var(--text);padding:8px 12px;border-radius:var(--radius);cursor:pointer;min-height:40px;font-size:0.9rem}
 .week-label{font-weight:700;font-size:0.95rem;min-width:140px;text-align:center}
 
+/* View Toggle */
+.view-toggle{display:flex;gap:2px;background:var(--surface);border-radius:20px;padding:2px}
+.view-toggle button{
+  background:none;border:none;color:var(--text2);padding:8px 16px;border-radius:18px;
+  cursor:pointer;font-size:0.8rem;font-weight:600;min-height:36px;transition:all 0.2s
+}
+.view-toggle button.active{background:var(--accent);color:#0f172a}
+
+/* Calendar */
 .calendar-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
 .calendar{display:grid;gap:2px;min-width:700px;background:var(--surface2);border-radius:var(--radius);overflow:hidden}
 .cal-header{background:var(--surface);padding:10px 8px;text-align:center;font-weight:700;font-size:0.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
@@ -110,6 +117,32 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .pool-jobs{display:flex;flex-wrap:wrap;gap:8px;min-height:50px;padding:8px;background:var(--surface);border:1px dashed var(--surface2);border-radius:var(--radius)}
 .pool-jobs .job-card{min-width:160px;max-width:200px}
 
+/* Map */
+.map-container{display:none;position:relative}
+.map-container.active{display:block}
+#map{height:60vh;min-height:350px;border-radius:var(--radius);border:1px solid var(--surface2);z-index:1}
+.map-legend{
+  display:flex;flex-wrap:wrap;gap:12px;padding:8px 0;font-size:0.75rem;color:var(--text2)
+}
+.map-legend span{display:flex;align-items:center;gap:4px}
+.map-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot-pending{background:var(--text2)}
+.dot-dispatched{background:var(--blue)}
+.dot-in-progress{background:var(--accent)}
+.dot-completed{background:var(--green)}
+.dot-cancelled{background:var(--red)}
+.dot-gps{background:#fff;border:2px solid var(--blue)}
+
+/* Leaflet dark overrides */
+.leaflet-container{background:var(--bg)}
+.leaflet-control-zoom a{background:var(--surface)!important;color:var(--text)!important;border-color:var(--surface2)!important}
+.leaflet-control-attribution{background:rgba(15,23,42,0.8)!important;color:var(--text2)!important;font-size:0.65rem!important}
+.leaflet-popup-content-wrapper{background:var(--surface)!important;color:var(--text)!important;border-radius:var(--radius)!important}
+.leaflet-popup-tip{background:var(--surface)!important}
+.leaflet-popup-content{font-size:0.85rem!important;margin:8px 12px!important}
+.leaflet-popup-content b{color:var(--accent)}
+.leaflet-popup-close-button{color:var(--text)!important}
+
 /* Modals */
 .modal-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;
@@ -130,6 +163,8 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .modal textarea{min-height:80px;resize:vertical}
 .modal input:focus,.modal select:focus,.modal textarea:focus{outline:none;border-color:var(--accent)}
 .modal-btns{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.modal .coord-row{display:flex;gap:8px}
+.modal .coord-row input{flex:1}
 
 /* Job Detail Panel */
 .job-detail{
@@ -149,7 +184,7 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .job-detail .chat-input-row{display:flex;gap:8px;margin-top:8px}
 .job-detail .chat-input-row input{flex:1}
 
-/* GPS */
+/* GPS Bar */
 .gps-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-radius:var(--radius);margin-bottom:12px;font-size:0.8rem}
 .gps-bar .coords{color:var(--green);font-family:monospace;font-size:0.75rem}
 .gps-bar .error{color:var(--red)}
@@ -163,13 +198,13 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .toast.show{opacity:1}
 .toast.error{background:var(--red)}
 
-/* Mobile */
 @media(max-width:768px){
   .features-grid{grid-template-columns:1fr}
   .hero-btns{flex-direction:column;align-items:center}
   .btn{width:100%;max-width:300px;justify-content:center}
   .calendar-wrap{margin:0 -8px;padding:0 8px}
   .modal{max-width:100%;margin:0 8px}
+  #map{height:50vh;min-height:280px}
 }
 @media(max-width:380px){
   .hero h1{font-size:1.4rem}
@@ -193,20 +228,20 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 <div class="view active" id="view-home">
   <div class="hero">
     <h1>Job scheduling <span>built by a tradesman</span>, for tradesmen</h1>
-    <p>Drag-and-drop calendar. GPS check-in. Team chat. No bloated enterprise crap.</p>
+    <p>Drag-and-drop calendar. GPS check-in. Live map. Team chat. No bloated enterprise crap.</p>
     <div class="hero-btns">
       <button class="btn btn-primary" onclick="switchView('app')">🚀 Launch Demo</button>
       <a href="#features" class="btn btn-outline">See Features</a>
     </div>
   </div>
   <div class="features-grid" id="features">
-    <div class="fcard"><div class="icon">📍</div><h3>GPS Check-in</h3><p>Worker clocks in — GPS pin proves they're on site. Geofence alerts.</p></div>
+    <div class="fcard"><div class="icon">🗺️</div><h3>Live Job Map</h3><p>All jobs plotted on OpenStreetMap. Colour-coded by status. Tap a pin to see job details.</p></div>
+    <div class="fcard"><div class="icon">📍</div><h3>GPS Check-in</h3><p>Worker clocks in — GPS pin proves they're on site. Shows on map in real time.</p></div>
     <div class="fcard"><div class="icon">💬</div><h3>Team Chat</h3><p>Per-job messaging. No emoji, no GIFs — it's a tool, not WhatsApp.</p></div>
     <div class="fcard"><div class="icon">🔄</div><h3>Shift Swaps</h3><p>Worker requests swap → coworker accepts → admin approves. No 6am calls.</p></div>
     <div class="fcard"><div class="icon">💰</div><h3>Job Costing</h3><p>Revenue − Labour − Materials = Margin. Auto-calculated from GPS hours.</p></div>
     <div class="fcard"><div class="icon">📅</div><h3>Drag & Drop</h3><p>Move jobs between workers on a week view. Just drag it.</p></div>
     <div class="fcard"><div class="icon">🔐</div><h3>PIN Login</h3><p>4-digit PIN. No email, no password. Built for blokes on site.</p></div>
-    <div class="fcard"><div class="icon">🗺️</div><h3>OpenStreetMap</h3><p>Free maps forever. No Google API keys, no monthly bills.</p></div>
     <div class="fcard"><div class="icon">📊</div><h3>Job Status</h3><p>Pending → Dispatched → In Progress → Completed. Full visibility.</p></div>
   </div>
 </div>
@@ -220,7 +255,11 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
       <button onclick="nextWeek()">▶</button>
       <button onclick="goToday()">Today</button>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="view-toggle" id="appViewToggle">
+        <button class="active" onclick="setAppView('calendar')">📅 Calendar</button>
+        <button onclick="setAppView('map')">🗺️ Map</button>
+      </div>
       <button class="btn btn-primary btn-sm" onclick="openJobModal()">+ Job</button>
       <button class="btn btn-outline btn-sm" onclick="openWorkerModal()">+ Worker</button>
       <button class="btn btn-outline btn-sm" onclick="resetDemo()">Reset</button>
@@ -233,15 +272,30 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
     <button class="btn btn-sm btn-primary" onclick="gpsCheckIn()" style="margin-left:auto">Check In</button>
   </div>
 
-  <div class="calendar-wrap">
-    <div class="calendar" id="calendar"></div>
+  <!-- Calendar View -->
+  <div id="calendarView">
+    <div class="calendar-wrap">
+      <div class="calendar" id="calendar"></div>
+    </div>
+    <div class="unassigned-pool">
+      <h3>📋 Unassigned Jobs</h3>
+      <div class="pool-jobs" id="poolJobs"
+           ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handlePoolDrop(event)">
+      </div>
+    </div>
   </div>
 
-  <div class="unassigned-pool">
-    <h3>📋 Unassigned Jobs</h3>
-    <div class="pool-jobs" id="poolJobs"
-         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handlePoolDrop(event)">
+  <!-- Map View -->
+  <div class="map-container" id="mapView">
+    <div class="map-legend">
+      <span><span class="dot dot-pending"></span> Pending</span>
+      <span><span class="dot dot-dispatched"></span> Dispatched</span>
+      <span><span class="dot dot-in-progress"></span> In Progress</span>
+      <span><span class="dot dot-completed"></span> Completed</span>
+      <span><span class="dot dot-cancelled"></span> Cancelled</span>
+      <span><span class="dot dot-gps"></span> Your GPS</span>
     </div>
+    <div id="map"></div>
   </div>
 </div>
 
@@ -253,6 +307,12 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
     <label>Job Title</label><input id="jobTitle" placeholder="e.g. Bathroom refit">
     <label>Client Name</label><input id="jobClient" placeholder="e.g. Mrs Smith">
     <label>Address</label><input id="jobAddress" placeholder="e.g. 12 High St, Exeter">
+    <label>Coordinates (for map)</label>
+    <div class="coord-row">
+      <input id="jobLat" placeholder="Latitude e.g. 50.7184" type="number" step="any">
+      <input id="jobLng" placeholder="Longitude e.g. -3.5339" type="number" step="any">
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="grabGPSForJob()" style="margin-top:4px;width:100%">📍 Use Current GPS Location</button>
     <label>Worker</label><select id="jobWorker"></select>
     <label>Day</label><select id="jobDay"></select>
     <label>Status</label><select id="jobStatus">
@@ -319,6 +379,7 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 
 <div class="toast" id="toast"></div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ── DATA ──
 const DAYS = ['mon','tue','wed','thu','fri'];
@@ -331,18 +392,29 @@ function loadData(){
     return {
       workers: d.workers || [{id:'w1',name:'Dave',pin:'1234'},{id:'w2',name:'Steve',pin:'5678'}],
       jobs: d.jobs || [
-        {id:'j1',title:'Bathroom refit',client:'Mrs Smith',address:'12 High St, Exeter',workerId:'w1',day:'mon',status:'in-progress',notes:'Need to pick up tiles',chat:[]},
-        {id:'j2',title:'Kitchen plaster',client:'Mr Jones',address:'45 Fore St, Exmouth',workerId:'w2',day:'tue',status:'dispatched',notes:'',chat:[]},
-        {id:'j3',title:'Boiler service',client:'Landlord Ltd',address:'3 River Rd, Topsham',workerId:'',day:'',status:'pending',notes:'Annual check',chat:[]}
+        {id:'j1',title:'Bathroom refit',client:'Mrs Smith',address:'12 High St, Exeter',lat:50.7184,lng:-3.5339,workerId:'w1',day:'mon',status:'in-progress',notes:'Need to pick up tiles',chat:[]},
+        {id:'j2',title:'Kitchen plaster',client:'Mr Jones',address:'45 Fore St, Exmouth',lat:50.6194,lng:-3.4135,workerId:'w2',day:'tue',status:'dispatched',notes:'',chat:[]},
+        {id:'j3',title:'Boiler service',client:'Landlord Ltd',address:'3 River Rd, Topsham',lat:50.6855,lng:-3.4668,workerId:'',day:'',status:'pending',notes:'Annual check',chat:[]}
       ],
-      weekOffset: d.weekOffset || 0
+      weekOffset: d.weekOffset || 0,
+      appView: d.appView || 'calendar',
+      gpsLat: d.gpsLat || null,
+      gpsLng: d.gpsLng || null
     };
-  }catch(e){return {workers:[],jobs:[],weekOffset:0};}
+  }catch(e){return {workers:[],jobs:[],weekOffset:0,appView:'calendar',gpsLat:null,gpsLng:null};}
 }
-function saveData(){localStorage.setItem('tradescheduler',JSON.stringify({workers:data.workers,jobs:data.jobs,weekOffset:data.weekOffset}))}
+function saveData(){
+  localStorage.setItem('tradescheduler',JSON.stringify({
+    workers:data.workers,jobs:data.jobs,weekOffset:data.weekOffset,
+    appView:data.appView,gpsLat:data.gpsLat,gpsLng:data.gpsLng
+  }))
+}
 
 let data = loadData();
 let detailJobId = null;
+let map = null;
+let mapMarkers = [];
+let gpsMarker = null;
 
 // ── WEEK CALC ──
 function getMonday(d){d=new Date(d);const day=d.getDay();d.setDate(d.getDate()-(day||7)+1);d.setHours(0,0,0,0);return d}
@@ -360,6 +432,7 @@ function renderAll(){
   renderCalendar();
   renderPool();
   updateWeekLabel();
+  if(data.appView==='map') renderMap();
 }
 
 function updateWeekLabel(){
@@ -370,19 +443,13 @@ function updateWeekLabel(){
 function renderCalendar(){
   const dates=getWeekDates(data.weekOffset);
   const cal=document.getElementById('calendar');
-  const nCols=6; // label + 5 days
-  const nRows=1+data.workers.length; // header + workers
-
   cal.style.gridTemplateColumns=`80px repeat(5, 1fr)`;
-
   let html='';
-  // Header row
   html+='<div class="cal-header" style="grid-column:1">Worker</div>';
   for(let i=0;i<5;i++){
     const cls=isToday(dates[i])?'cal-header today':'cal-header';
     html+=`<div class="${cls}">${DAY_LABELS[i]}<br>${fmtDate(dates[i])}</div>`;
   }
-  // Worker rows
   data.workers.forEach(w=>{
     html+=`<div class="cal-row-label">${w.name}<span class="worker-pin">PIN:${w.pin}</span></div>`;
     for(let d=0;d<5;d++){
@@ -418,6 +485,75 @@ function renderPool(){
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
+// ── MAP ──
+const STATUS_COLORS = {
+  'pending':'#94a3b8','dispatched':'#3b82f6','in-progress':'#f59e0b',
+  'completed':'#10b981','cancelled':'#ef4444'
+};
+
+function initMap(){
+  if(map) return;
+  map = L.map('map',{zoomControl:true,attributionControl:true}).setView([50.68,-3.50],10);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom:19
+  }).addTo(map);
+}
+
+function renderMap(){
+  const mapView=document.getElementById('mapView');
+  if(!mapView.classList.contains('active')) return;
+  initMap();
+  // Clear existing markers
+  mapMarkers.forEach(m=>map.removeLayer(m));
+  mapMarkers=[];
+  if(gpsMarker){map.removeLayer(gpsMarker);gpsMarker=null;}
+
+  // Add job markers
+  data.jobs.forEach(j=>{
+    if(j.lat==null||j.lng==null) return;
+    const color=STATUS_COLORS[j.status]||'#94a3b8';
+    const icon=L.divIcon({
+      className:'custom-marker',
+      html:`<div style="width:24px;height:24px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5);cursor:pointer"></div>`,
+      iconSize:[24,24],iconAnchor:[12,12],popupAnchor:[0,-14]
+    });
+    const marker=L.marker([j.lat,j.lng],{icon}).addTo(map);
+    const w=data.workers.find(w=>w.id===j.workerId);
+    marker.bindPopup(`
+      <b>${esc(j.title)}</b><br>
+      ${esc(j.client)}<br>
+      ${esc(j.address||'')}<br>
+      <span style="color:${color};font-weight:700;text-transform:uppercase;font-size:0.75rem">${j.status}</span>
+      ${w?' — '+esc(w.name):''}<br>
+      <a href="#" onclick="openJobDetail('${j.id}');return false" style="color:var(--accent);font-size:0.8rem">View details →</a>
+    `);
+    marker.on('click',()=>openJobDetail(j.id));
+    mapMarkers.push(marker);
+  });
+
+  // GPS marker
+  if(data.gpsLat!=null&&data.gpsLng!=null){
+    const gpsIcon=L.divIcon({
+      className:'custom-marker',
+      html:`<div style="width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #3b82f6;box-shadow:0 0 8px rgba(59,130,246,0.6);cursor:pointer;animation:pulse 2s infinite"></div>`,
+      iconSize:[18,18],iconAnchor:[9,9],popupAnchor:[0,-10]
+    });
+    gpsMarker=L.marker([data.gpsLat,data.gpsLng],{icon:gpsIcon}).addTo(map);
+    gpsMarker.bindPopup(`<b>📍 Your Location</b><br>${data.gpsLat.toFixed(5)}, ${data.gpsLng.toFixed(5)}<br><span style="font-size:0.7rem;color:var(--text2)">Last check-in</span>`);
+  }
+
+  // Fit bounds if we have markers
+  const allMarkers=[...mapMarkers,gpsMarker].filter(Boolean);
+  if(allMarkers.length>0){
+    const group=L.featureGroup(allMarkers);
+    map.fitBounds(group.getBounds().pad(0.1),{maxZoom:14});
+  }
+
+  // Invalidate size after render
+  setTimeout(()=>map.invalidateSize(),100);
+}
+
 // ── DRAG & DROP ──
 let dragJobId=null;
 function handleDragStart(e){
@@ -429,7 +565,6 @@ function handleDragStart(e){
 function handleDragEnd(e){e.target.classList.remove('dragging');dragJobId=null}
 function handleDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over')}
 function handleDragLeave(e){e.currentTarget.classList.remove('drag-over')}
-
 function handleCellDrop(e){
   e.preventDefault();e.currentTarget.classList.remove('drag-over');
   const jobId=e.dataTransfer.getData('text/plain');
@@ -442,7 +577,6 @@ function handlePoolDrop(e){
   const jobId=e.dataTransfer.getData('text/plain');
   moveJob(jobId,'','');
 }
-
 function moveJob(jobId,workerId,day){
   const job=data.jobs.find(j=>j.id===jobId);
   if(!job)return;
@@ -451,6 +585,19 @@ function moveJob(jobId,workerId,day){
   if(workerId&&day&&job.status==='pending')job.status='dispatched';
   saveData();renderAll();
   toast('Job moved ✓');
+}
+
+// ── APP VIEW TOGGLE ──
+function setAppView(view){
+  data.appView=view;
+  document.getElementById('calendarView').style.display=view==='calendar'?'block':'none';
+  document.getElementById('mapView').classList.toggle('active',view==='map');
+  document.querySelectorAll('#appViewToggle button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#appViewToggle button').forEach(b=>{
+    if(b.textContent.toLowerCase().includes(view))b.classList.add('active');
+  });
+  saveData();
+  if(view==='map'){initMap();setTimeout(()=>{renderMap();map.invalidateSize()},150)}
 }
 
 // ── JOB MODAL ──
@@ -462,17 +609,14 @@ function openJobModal(editId){
   document.getElementById('jobTitle').value='';
   document.getElementById('jobClient').value='';
   document.getElementById('jobAddress').value='';
+  document.getElementById('jobLat').value='';
+  document.getElementById('jobLng').value='';
   document.getElementById('jobNotes').value='';
   document.getElementById('jobStatus').value='pending';
-
-  // Populate worker dropdown
   const ws=document.getElementById('jobWorker');
   ws.innerHTML='<option value="">Unassigned</option>'+data.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
-
-  // Populate day dropdown
   const ds=document.getElementById('jobDay');
   ds.innerHTML='<option value="">Unassigned</option>'+DAYS.map((d,i)=>`<option value="${d}">${DAY_LABELS[i]}</option>`).join('');
-
   if(editId){
     const job=data.jobs.find(j=>j.id===editId);
     if(job){
@@ -481,6 +625,8 @@ function openJobModal(editId){
       document.getElementById('jobTitle').value=job.title;
       document.getElementById('jobClient').value=job.client;
       document.getElementById('jobAddress').value=job.address;
+      document.getElementById('jobLat').value=job.lat||'';
+      document.getElementById('jobLng').value=job.lng||'';
       document.getElementById('jobWorker').value=job.workerId;
       document.getElementById('jobDay').value=job.day;
       document.getElementById('jobStatus').value=job.status;
@@ -492,22 +638,33 @@ function openJobModal(editId){
   }
   overlay.classList.add('open');
 }
-
 function closeJobModal(){document.getElementById('jobModalOverlay').classList.remove('open')}
+
+function grabGPSForJob(){
+  if(!navigator.geolocation){toast('GPS not available','error');return}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    document.getElementById('jobLat').value=pos.coords.latitude.toFixed(5);
+    document.getElementById('jobLng').value=pos.coords.longitude.toFixed(5);
+    toast('📍 Coordinates set');
+  },()=>toast('GPS denied','error'),{enableHighAccuracy:true,timeout:8000});
+}
 
 function saveJob(){
   const editId=document.getElementById('jobEditId').value;
+  const latVal=document.getElementById('jobLat').value;
+  const lngVal=document.getElementById('jobLng').value;
   const jobData={
     title:document.getElementById('jobTitle').value.trim(),
     client:document.getElementById('jobClient').value.trim(),
     address:document.getElementById('jobAddress').value.trim(),
+    lat:latVal?parseFloat(latVal):null,
+    lng:lngVal?parseFloat(lngVal):null,
     workerId:document.getElementById('jobWorker').value,
     day:document.getElementById('jobDay').value,
     status:document.getElementById('jobStatus').value,
     notes:document.getElementById('jobNotes').value.trim()
   };
   if(!jobData.title){toast('Title required','error');return}
-
   if(editId){
     const job=data.jobs.find(j=>j.id===editId);
     if(job){Object.assign(job,jobData)}
@@ -576,7 +733,7 @@ function renderChat(job){
   const chatDiv=document.getElementById('detailChat');
   if(!job.chat||job.chat.length===0){chatDiv.innerHTML='<div style="color:var(--text2);font-size:0.8rem">No messages yet</div>';return}
   chatDiv.innerHTML=job.chat.map(m=>{
-    const who=m.from==='admin'?'Admin':(data.workers.find(w=>w.id===m.from)?.name||'Worker');
+    const who=m.from==='admin'?'Admin':(m.from==='system'?'📡 System':(data.workers.find(w=>w.id===m.from)?.name||'Worker'));
     return `<div class="chat-msg"><strong>${who}:</strong> ${esc(m.text)}<div style="font-size:0.65rem;color:var(--text2)">${new Date(m.time).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
   }).join('');
 }
@@ -599,20 +756,22 @@ function gpsCheckIn(){
   if(!navigator.geolocation){coordsEl.textContent='Not supported';coordsEl.className='error';return}
   coordsEl.textContent='Locating...';
   navigator.geolocation.getCurrentPosition(pos=>{
-    const lat=pos.coords.latitude.toFixed(5);
-    const lng=pos.coords.longitude.toFixed(5);
-    coordsEl.textContent=`${lat}, ${lng}`;
+    const lat=pos.coords.latitude;
+    const lng=pos.coords.longitude;
+    data.gpsLat=lat;data.gpsLng=lng;
+    coordsEl.textContent=`${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     coordsEl.className='coords';
-    toast(`📍 Checked in at ${lat}, ${lng}`);
-    // If a job detail is open, add a chat message
+    saveData();
+    toast(`📍 Checked in at ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
     if(detailJobId){
       const job=data.jobs.find(j=>j.id===detailJobId);
       if(job){
         if(!job.chat)job.chat=[];
-        job.chat.push({from:'system',text:`GPS check-in: ${lat}, ${lng}`,time:Date.now()});
+        job.chat.push({from:'system',text:`GPS check-in: ${lat.toFixed(5)}, ${lng.toFixed(5)}`,time:Date.now()});
         saveData();renderChat(job);
       }
     }
+    if(data.appView==='map') renderMap();
   },err=>{
     coordsEl.textContent='Denied / unavailable';
     coordsEl.className='error';
@@ -631,7 +790,10 @@ function switchView(view){
   document.getElementById('view-'+view).classList.add('active');
   document.querySelectorAll('.nav-tabs button').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.nav-tabs button').forEach(b=>{if(b.textContent.toLowerCase().includes(view))b.classList.add('active')});
-  if(view==='app')renderAll();
+  if(view==='app'){
+    renderAll();
+    setAppView(data.appView);
+  }
 }
 
 // ── RESET ──
@@ -640,6 +802,7 @@ function resetDemo(){
   localStorage.removeItem('tradescheduler');
   data=loadData();
   renderAll();
+  setAppView(data.appView);
   toast('Reset to demo data');
 }
 
@@ -655,6 +818,7 @@ function toast(msg,type){
 
 // ── INIT ──
 renderAll();
+setAppView(data.appView);
 </script>
 </body>
 </html>
