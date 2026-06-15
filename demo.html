@@ -21,6 +21,7 @@ body{
   -webkit-tap-highlight-color:transparent;overscroll-behavior:none;
 }
 
+/* ── NAV ── */
 nav{
   position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.95);
   backdrop-filter:blur(12px);border-bottom:1px solid var(--surface2);padding:10px 0;
@@ -36,16 +37,16 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .nav-tabs a.active{background:var(--accent);color:#0f172a}
 .nav-tabs a:hover:not(.active){color:var(--text)}
 
-/* Dispatch Board — dark theme overrides */
+/* ── LAYOUT ── */
 .dispatch-wrap{max-width:1200px;margin:0 auto;padding:20px 16px}
 
-/* Stats */
+/* ── STATS ── */
 .stat-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
 .stat-card{background:var(--surface);border:1px solid var(--surface2);border-radius:var(--radius);padding:14px 18px}
 .stat-card .val{font-size:24px;font-weight:800}
 .stat-card .lbl{font-size:12px;color:var(--text2);margin-top:2px;font-weight:500}
 
-/* Toolbar */
+/* ── TOOLBAR ── */
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .toolbar input,.toolbar select{
   padding:7px 10px;border-radius:6px;border:1px solid var(--surface2);
@@ -53,7 +54,6 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
   background:var(--surface);color:var(--text)
 }
 .toolbar input:focus,.toolbar select:focus{border-color:var(--accent)}
-
 .view-toggle{display:flex;gap:2px;background:var(--surface);border-radius:20px;padding:2px;margin-left:auto}
 .view-toggle button{
   background:none;border:none;color:var(--text2);padding:8px 16px;border-radius:18px;
@@ -61,44 +61,70 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 }
 .view-toggle button.active{background:var(--accent);color:#0f172a}
 
-/* Board */
-.board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border-radius:var(--radius);border:1px solid var(--surface2)}
+/* ── SWIPE HINT ── */
+.swipe-hint{
+  display:none;text-align:center;padding:6px 0 10px;color:var(--text2);font-size:0.7rem;
+  animation:swipePulse 2s ease-in-out infinite
+}
+@keyframes swipePulse{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* ── BOARD ── */
+.board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border-radius:var(--radius);border:1px solid var(--surface2);position:relative}
+.board-wrap::after{
+  content:'';position:sticky;right:0;top:0;bottom:0;width:20px;
+  background:linear-gradient(to right,transparent,rgba(15,23,42,0.3));
+  pointer-events:none;z-index:2
+}
 .board-inner{min-width:900px}
-.board-header{display:flex;border-bottom:1px solid var(--surface2);background:rgba(30,41,59,0.6)}
+.board-header{display:flex;border-bottom:1px solid var(--surface2);background:rgba(30,41,59,0.6);position:sticky;top:0;z-index:1}
 .board-header .eng-label{width:100px;min-width:100px;padding:8px 12px;font-size:12px;font-weight:700;color:var(--text2)}
 .board-header .hour-col{width:80px;min-width:80px;padding:8px 4px;font-size:11px;color:var(--text2);font-weight:600;border-left:1px solid rgba(51,65,85,0.4)}
 
-.eng-row{display:flex;border-bottom:1px solid rgba(51,65,85,0.3);position:relative;height:64px}
+.eng-row{display:flex;border-bottom:1px solid rgba(51,65,85,0.3);position:relative;height:64px;transition:background 0.15s}
+.eng-row.drag-hover{background:rgba(245,158,11,0.1)}
 .eng-row .eng-label{width:100px;min-width:100px;padding:0 12px;display:flex;align-items:center;gap:8px;border-right:1px solid var(--surface2);background:rgba(30,41,59,0.4)}
 .eng-row .eng-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .eng-row .eng-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
 .eng-row .hour-grid{position:relative;flex:1;display:flex}
-.eng-row .hour-grid .hour-col{width:80px;min-width:80px;height:100%;border-left:1px solid rgba(51,65,85,0.2)}
+.eng-row .hour-grid .hour-col{width:80px;min-width:80px;height:100%;border-left:1px solid rgba(51,65,85,0.2);transition:background 0.1s}
+.eng-row .hour-grid .hour-col.drag-over{background:rgba(245,158,11,0.15)}
 
 .job-block{
   position:absolute;top:6px;height:52px;border-radius:5px;padding:4px 7px;
-  cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.3);
-  transition:box-shadow 0.15s;border-left-width:4px;border-left-style:solid;
-  border-top:1.5px solid;border-right:1.5px solid;border-bottom:1.5px solid
+  cursor:grab;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+  transition:box-shadow 0.15s,transform 0.1s;border-left-width:4px;border-left-style:solid;
+  border-top:1.5px solid;border-right:1.5px solid;border-bottom:1.5px solid;
+  z-index:1;user-select:none;-webkit-user-select:none
 }
-.job-block:hover{box-shadow:0 4px 12px rgba(0,0,0,0.4)}
-.job-block .jb-title{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.job-block .jb-cust{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-block:active{cursor:grabbing}
+.job-block:hover{box-shadow:0 4px 12px rgba(0,0,0,0.4);z-index:3}
+.job-block.dragging{opacity:0.4;transform:scale(0.95);z-index:0}
+.job-block .jb-title{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.job-block .jb-cust{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.job-block .jb-time{font-size:9px;color:var(--text2);margin-top:1px;pointer-events:none}
 
-.unassigned-row{display:flex;position:relative;height:64px;background:rgba(245,158,11,0.08)}
+/* Collision warning */
+.job-block.collision{border-right:3px solid var(--red);animation:collisionPulse 1s ease-in-out}
+@keyframes collisionPulse{0%,100%{border-right-color:var(--red)}50%{border-right-color:transparent}}
+
+.unassigned-row{display:flex;position:relative;height:64px;background:rgba(245,158,11,0.08);transition:background 0.15s}
+.unassigned-row.drag-hover{background:rgba(245,158,11,0.2)}
 .unassigned-row .ua-label{width:100px;min-width:100px;padding:0 12px;display:flex;align-items:center;gap:8px;border-right:1px solid var(--surface2)}
 .unassigned-row .ua-text{font-size:11px;font-weight:600;color:var(--accent)}
 .unassigned-row .ua-grid{position:relative;flex:1;display:flex}
-.unassigned-row .ua-grid .hour-col{width:80px;min-width:80px;height:100%;border-left:1px solid rgba(245,158,11,0.15)}
+.unassigned-row .ua-grid .hour-col{width:80px;min-width:80px;height:100%;border-left:1px solid rgba(245,158,11,0.15);transition:background 0.1s}
+.unassigned-row .ua-grid .hour-col.drag-over{background:rgba(245,158,11,0.25)}
 .ua-block{
   position:absolute;top:6px;height:52px;border-radius:5px;padding:4px 7px;
-  cursor:pointer;overflow:hidden;background:rgba(245,158,11,0.15);
-  border:1.5px dashed rgba(245,158,11,0.4)
+  cursor:grab;overflow:hidden;background:rgba(245,158,11,0.15);
+  border:1.5px dashed rgba(245,158,11,0.4);z-index:1;user-select:none;-webkit-user-select:none
 }
-.ua-block .jb-title{font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ua-block .jb-cust{font-size:10px;color:var(--text2)}
+.ua-block:active{cursor:grabbing}
+.ua-block.dragging{opacity:0.4;transform:scale(0.95)}
+.ua-block .jb-title{font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.ua-block .jb-cust{font-size:10px;color:var(--text2);pointer-events:none}
 
-/* List view */
+/* ── LIST VIEW ── */
 .list-wrap{background:var(--surface);border-radius:var(--radius);border:1px solid var(--surface2);overflow:hidden}
 .list-header{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 100px;padding:10px 16px;background:rgba(30,41,59,0.6);border-bottom:1px solid var(--surface2);gap:8px}
 .list-header span{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em}
@@ -114,21 +140,21 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .list-row .lr-eng-name{font-size:12px;color:var(--text)}
 .list-row .lr-unassigned{font-size:12px;color:var(--accent);font-weight:600}
 
-/* Status badge */
+/* ── STATUS BADGE ── */
 .status-badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:0.03em;text-transform:uppercase;display:inline-block}
 
-/* Legend */
+/* ── LEGEND ── */
 .legend{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
 .legend-item{display:flex;align-items:center;gap:5px}
 .legend-swatch{width:10px;height:10px;border-radius:2px}
 .legend-label{font-size:11px;color:var(--text2)}
 
-/* Modal */
+/* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:center;justify-content:center}
-.modal-box{background:var(--surface);border-radius:var(--radius);width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden;border:1px solid var(--surface2)}
+.modal-box{background:var(--surface);border-radius:var(--radius);width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden;border:1px solid var(--surface2);max-height:90vh;overflow-y:auto}
 .modal-header{padding:16px 20px;border-bottom:1px solid var(--surface2);display:flex;justify-content:space-between;align-items:center}
 .modal-header span{font-weight:700;font-size:15px;color:var(--text)}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);line-height:1}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);line-height:1;min-height:44px;min-width:44px}
 .modal-body{padding:18px 20px;display:grid;gap:12px}
 .modal-footer{padding:12px 20px;border-top:1px solid var(--surface2);display:flex;justify-content:space-between}
 
@@ -151,6 +177,7 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 
+/* ── BUTTONS ── */
 .btn{
   display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
   border-radius:6px;font-weight:600;font-size:13px;
@@ -164,16 +191,62 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.3)}
 .btn-danger:hover{background:rgba(239,68,68,0.1)}
 .btn-new{background:var(--accent);color:#0f172a;padding:8px 16px}
+.btn-print{background:transparent;color:var(--text2);border:1px solid var(--surface2);margin-left:8px}
+.btn-print:hover{color:var(--text);border-color:var(--accent)}
 
 .empty-state{padding:40px 16px;text-align:center;color:var(--text2);font-size:13px}
 
-/* Mobile */
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;
+  background:var(--surface);border:1px solid var(--surface2);border-radius:8px;
+  padding:10px 18px;font-size:13px;font-weight:600;color:var(--text);
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ── MOBILE ── */
 @media(max-width:600px){
   .stat-bar{grid-template-columns:repeat(2,1fr)}
   .form-grid-2,.form-grid-3{grid-template-columns:1fr}
   .list-header,.list-row{grid-template-columns:1.5fr 1fr 1fr 80px;font-size:11px}
   .list-header span:nth-child(3),.list-row .lr-addr{display:none}
   .list-header span:nth-child(5),.list-row .lr-eng{display:none}
+  .swipe-hint{display:block}
+  .board-wrap::after{width:30px}
+  .toolbar{font-size:12px}
+  .toolbar input,.toolbar select{font-size:12px;padding:6px 8px}
+  .btn-new{padding:6px 12px;font-size:12px}
+}
+
+/* ── PRINT ── */
+@media print{
+  nav,.toolbar,.view-toggle,.stat-bar,.legend,.swipe-hint,.btn-new,.btn-print{display:none!important}
+  body{background:#fff;color:#000;font-size:11pt}
+  .dispatch-wrap{max-width:100%;padding:0}
+  .board-wrap{overflow:visible;border:none;background:#fff}
+  .board-wrap::after{display:none}
+  .board-inner{min-width:auto}
+  .board-header{background:#f5f5f5;border-bottom:2px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .board-header .eng-label,.board-header .hour-col{color:#000}
+  .eng-row{border-bottom:1px solid #ccc;height:48px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .eng-row .eng-label{background:#fafafa;border-right:1px solid #ccc}
+  .eng-row .eng-name{color:#000}
+  .eng-row .hour-grid .hour-col{border-left:1px solid #eee}
+  .job-block{box-shadow:none;border:1px solid #999;height:40px;top:4px}
+  .job-block .jb-title{color:#000}
+  .job-block .jb-cust{color:#555}
+  .unassigned-row{background:#fffbe6;height:48px}
+  .unassigned-row .ua-text{color:#b45309}
+  .ua-block{border:1px dashed #ca8a04;background:#fef9c3;height:40px;top:4px}
+  .list-wrap{border:none;background:#fff}
+  .list-header{background:#f5f5f5;border-bottom:2px solid #000}
+  .list-header span{color:#000}
+  .list-row{border-bottom:1px solid #eee}
+  .list-row .lr-title,.list-row .lr-cust{color:#000}
+  .list-row .lr-addr,.list-row .lr-time{color:#333}
+  .status-badge{border:1px solid #999!important}
+  @page{margin:10mm}
 }
 </style>
 </head>
@@ -195,7 +268,9 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
 </div>
 
 <script type="text/babel">
-const { useState } = React;
+const { useState, useEffect, useRef, useCallback } = React;
+
+const STORAGE_KEY = "tradescheduler_dispatch_jobs";
 
 const ENGINEERS = [
   { id: 1, name: "Dave R.", colour: "#3b82f6" },
@@ -215,7 +290,7 @@ const STATUS_CONFIG = {
 
 const HOURS = Array.from({ length: 10 }, (_, i) => i + 7);
 
-const initialJobs = [
+const DEFAULT_JOBS = [
   { id: 1, title: "Boiler service", customer: "Mrs Harris", address: "14 Elm St, Exeter", phone: "07700 900123", engineerId: 1, date: "2026-06-15", startHour: 8, duration: 1, status: "scheduled", type: "Gas" },
   { id: 2, title: "New sockets install", customer: "Mr Patel", address: "22 Oak Ave, Honiton", phone: "07700 900456", engineerId: 2, date: "2026-06-15", startHour: 9, duration: 2, status: "en-route", type: "Electrical" },
   { id: 3, title: "Leak repair", customer: "Thornton Ltd", address: "8 Fore St, Sidmouth", phone: "07700 900789", engineerId: 3, date: "2026-06-15", startHour: 10, duration: 1, status: "on-site", type: "Plumbing" },
@@ -223,19 +298,42 @@ const initialJobs = [
   { id: 5, title: "Consumer unit upgrade", customer: "Green & Sons", address: "19 High St, Tiverton", phone: "07700 900654", engineerId: 1, date: "2026-06-15", startHour: 11, duration: 3, status: "scheduled", type: "Electrical" },
 ];
 
-let nextId = 6;
+function loadJobs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [...DEFAULT_JOBS];
+}
 
-const EMPTY_JOB = {
-  title: "", customer: "", address: "", phone: "",
-  engineerId: null, date: "2026-06-15", startHour: 8, duration: 1,
-  status: "scheduled", type: "Plumbing",
-};
+function saveJobs(jobs) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+  } catch(e) {}
+}
 
 function fmt12(h) {
   const suffix = h >= 12 ? "pm" : "am";
   const display = h > 12 ? h - 12 : h;
   return `${display}${suffix}`;
 }
+
+function timeRange(job) {
+  return `${fmt12(job.startHour)}–${fmt12(job.startHour + job.duration)}`;
+}
+
+function jobsOverlap(a, b) {
+  if (a.id === b.id) return false;
+  const aEnd = a.startHour + a.duration;
+  const bEnd = b.startHour + b.duration;
+  return a.startHour < bEnd && b.startHour < aEnd;
+}
+
+function findCollisions(jobs, job) {
+  return jobs.filter(j => j.engineerId === job.engineerId && jobsOverlap(j, job));
+}
+
+// ── COMPONENTS ──
 
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status];
@@ -244,6 +342,14 @@ function StatusBadge({ status }) {
       background: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}`
     }}>{cfg.label}</span>
   );
+}
+
+function Toast({ message, onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2000);
+    return () => clearTimeout(t);
+  }, []);
+  return <div className="toast">{message}</div>;
 }
 
 function JobModal({ job, onSave, onDelete, onClose }) {
@@ -332,10 +438,44 @@ function JobModal({ job, onSave, onDelete, onClose }) {
   );
 }
 
-function DispatchBoard({ jobs, onJobClick }) {
+function DispatchBoard({ jobs, onJobClick, onJobDrop, draggingId }) {
   const COL = 80;
   const ROW = 64;
   const LABEL_W = 100;
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const handleEngineerDragOver = useCallback((e, engineerId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    e.currentTarget.classList.add("drag-hover");
+  }, []);
+
+  const handleEngineerDragLeave = useCallback((e) => {
+    e.currentTarget.classList.remove("drag-hover");
+  }, []);
+
+  const handleHourDrop = useCallback((e, engineerId, hour) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove("drag-over");
+    const row = e.currentTarget.closest(".eng-row,.unassigned-row");
+    if (row) row.classList.remove("drag-hover");
+    const jobId = parseInt(e.dataTransfer.getData("text/plain"));
+    if (jobId) onJobDrop(jobId, engineerId, hour);
+  }, [onJobDrop]);
+
+  const handleHourDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    e.currentTarget.classList.add("drag-over");
+  }, []);
+
+  const handleHourDragLeave = useCallback((e) => {
+    e.currentTarget.classList.remove("drag-over");
+  }, []);
 
   return (
     <div className="board-wrap">
@@ -350,21 +490,36 @@ function DispatchBoard({ jobs, onJobClick }) {
         {ENGINEERS.map(eng => {
           const engJobs = jobs.filter(j => j.engineerId === eng.id);
           return (
-            <div key={eng.id} className="eng-row">
+            <div key={eng.id} className="eng-row"
+              onDragOver={(e) => handleEngineerDragOver(e, eng.id)}
+              onDragLeave={handleEngineerDragLeave}>
               <div className="eng-label">
                 <div className="eng-dot" style={{background:eng.colour}} />
                 <span className="eng-name">{eng.name}</span>
               </div>
               <div className="hour-grid">
                 {HOURS.map(h => (
-                  <div key={h} className="hour-col" />
+                  <div key={h} className="hour-col"
+                    onDragOver={handleHourDragOver}
+                    onDragLeave={handleHourDragLeave}
+                    onDrop={(e) => handleHourDrop(e, eng.id, h)} />
                 ))}
                 {engJobs.map(job => {
                   const left = (job.startHour - HOURS[0]) * COL;
                   const width = job.duration * COL - 4;
                   const cfg = STATUS_CONFIG[job.status];
+                  const collisions = findCollisions(jobs, job);
+                  const hasCollision = collisions.length > 0;
                   return (
-                    <div key={job.id} className="job-block" onClick={() => onJobClick(job)}
+                    <div key={job.id}
+                      className={`job-block${draggingId === job.id ? ' dragging' : ''}${hasCollision ? ' collision' : ''}`}
+                      onClick={() => onJobClick(job)}
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", String(job.id));
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={handleDragOver}
                       style={{
                         left, width,
                         background: cfg.bg,
@@ -373,6 +528,7 @@ function DispatchBoard({ jobs, onJobClick }) {
                       }}>
                       <div className="jb-title">{job.title}</div>
                       <div className="jb-cust">{job.customer}</div>
+                      <div className="jb-time">{timeRange(job)}</div>
                     </div>
                   );
                 })}
@@ -384,22 +540,36 @@ function DispatchBoard({ jobs, onJobClick }) {
         {(() => {
           const unassigned = jobs.filter(j => !j.engineerId);
           return (
-            <div className="unassigned-row">
+            <div className="unassigned-row"
+              onDragOver={(e) => handleEngineerDragOver(e, null)}
+              onDragLeave={handleEngineerDragLeave}>
               <div className="ua-label">
                 <span className="ua-text">⚠ UNASSIGNED</span>
               </div>
               <div className="ua-grid">
                 {HOURS.map(h => (
-                  <div key={h} className="hour-col" />
+                  <div key={h} className="hour-col"
+                    onDragOver={handleHourDragOver}
+                    onDragLeave={handleHourDragLeave}
+                    onDrop={(e) => handleHourDrop(e, null, h)} />
                 ))}
                 {unassigned.map(job => {
                   const left = (job.startHour - HOURS[0]) * COL;
                   const width = job.duration * COL - 4;
                   return (
-                    <div key={job.id} className="ua-block" onClick={() => onJobClick(job)}
+                    <div key={job.id}
+                      className={`ua-block${draggingId === job.id ? ' dragging' : ''}`}
+                      onClick={() => onJobClick(job)}
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", String(job.id));
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={handleDragOver}
                       style={{ left, width }}>
                       <div className="jb-title">{job.title}</div>
                       <div className="jb-cust">{job.customer}</div>
+                      <div className="jb-time">{timeRange(job)}</div>
                     </div>
                   );
                 })}
@@ -428,7 +598,7 @@ function JobList({ jobs, onJobClick }) {
             </div>
             <div className="lr-cust">{job.customer}</div>
             <div className="lr-addr">{job.address}</div>
-            <div className="lr-time">{fmt12(job.startHour)}{job.duration > 0 ? ` · ${job.duration}h` : ""}</div>
+            <div className="lr-time">{timeRange(job)}</div>
             <div className="lr-eng">
               {eng ? (
                 <>
@@ -451,11 +621,34 @@ function JobList({ jobs, onJobClick }) {
 }
 
 function App() {
-  const [jobs, setJobs] = useState(initialJobs);
+  const [jobs, setJobs] = useState(() => loadJobs());
   const [view, setView] = useState("board");
   const [date, setDate] = useState("2026-06-15");
   const [modal, setModal] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [draggingId, setDraggingId] = useState(null);
+  const [toast, setToast] = useState(null);
+  const nextIdRef = useRef(Math.max(...loadJobs().map(j => j.id), 5) + 1);
+
+  // Persist on every change
+  useEffect(() => {
+    saveJobs(jobs);
+  }, [jobs]);
+
+  // Listen for dragstart/dragend globally to track dragging state
+  useEffect(() => {
+    const handleDragStart = (e) => {
+      const id = parseInt(e.dataTransfer.getData("text/plain"));
+      if (id) setDraggingId(id);
+    };
+    const handleDragEnd = () => setDraggingId(null);
+    document.addEventListener("dragstart", handleDragStart);
+    document.addEventListener("dragend", handleDragEnd);
+    return () => {
+      document.removeEventListener("dragstart", handleDragStart);
+      document.removeEventListener("dragend", handleDragEnd);
+    };
+  }, []);
 
   const visibleJobs = jobs.filter(j => {
     if (j.date !== date) return false;
@@ -470,7 +663,7 @@ function App() {
     if (form.id) {
       setJobs(js => js.map(j => j.id === form.id ? form : j));
     } else {
-      setJobs(js => [...js, { ...form, id: nextId++ }]);
+      setJobs(js => [...js, { ...form, id: nextIdRef.current++ }]);
     }
     setModal(null);
   };
@@ -480,6 +673,16 @@ function App() {
     setModal(null);
   };
 
+  const handleJobDrop = (jobId, newEngineerId, newStartHour) => {
+    setJobs(js => js.map(j => {
+      if (j.id !== jobId) return j;
+      return { ...j, engineerId: newEngineerId, startHour: newStartHour };
+    }));
+    const job = jobs.find(j => j.id === jobId);
+    const engName = newEngineerId ? ENGINEERS.find(e => e.id === newEngineerId)?.name : "Unassigned";
+    setToast(`📋 ${job?.title} → ${engName} at ${fmt12(newStartHour)}`);
+  };
+
   const todayJobs = jobs.filter(j => j.date === date);
   const stats = [
     { label: "Total Jobs", value: todayJobs.length, colour: "#3b82f6" },
@@ -487,6 +690,8 @@ function App() {
     { label: "On Site", value: todayJobs.filter(j => j.status === "on-site").length, colour: "#10b981" },
     { label: "Complete", value: todayJobs.filter(j => j.status === "complete").length, colour: "#64748b" },
   ];
+
+  const handlePrint = () => window.print();
 
   return (
     <div>
@@ -505,14 +710,18 @@ function App() {
           <option value="all">All statuses</option>
           {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
+        <button className="btn btn-new" onClick={openNew}>+ New Job</button>
+        <button className="btn btn-print" onClick={handlePrint} title="Print job sheet">🖨 Print</button>
         <div className="view-toggle">
           <button className={view==="board"?"active":""} onClick={()=>setView("board")}>▦ Board</button>
           <button className={view==="list"?"active":""} onClick={()=>setView("list")}>☰ List</button>
         </div>
       </div>
 
+      <div className="swipe-hint">← Swipe to see full schedule →</div>
+
       {view === "board"
-        ? <DispatchBoard jobs={visibleJobs} onJobClick={openEdit} />
+        ? <DispatchBoard jobs={visibleJobs} onJobClick={openEdit} onJobDrop={handleJobDrop} draggingId={draggingId} />
         : <JobList jobs={visibleJobs} onJobClick={openEdit} />
       }
 
@@ -533,6 +742,8 @@ function App() {
           onClose={() => setModal(null)}
         />
       )}
+
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </div>
   );
 }
