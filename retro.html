@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Retro Emulator — TradeScheduler Arcade</title>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+  --text: #f1f5f9; --text2: #94a3b8; --accent: #f59e0b; --accent2: #d97706;
+  --green: #10b981; --red: #ef4444; --blue: #3b82f6; --radius: 10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.5;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none;
+  min-height:100vh
+}
+
+nav{
+  position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.95);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--surface2);padding:10px 0;
+}
+nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.2rem;font-weight:800;color:var(--accent);text-decoration:none}
+.nav-tabs{display:flex;gap:4px;list-style:none}
+.nav-tabs a{
+  background:none;border:none;color:var(--text2);font-size:0.85rem;font-weight:600;
+  padding:8px 16px;border-radius:20px;cursor:pointer;min-height:40px;transition:all 0.2s;
+  text-decoration:none;display:inline-flex;align-items:center
+}
+.nav-tabs a.active{background:var(--accent);color:#0f172a}
+.nav-tabs a:hover:not(.active){color:var(--text)}
+
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px}
+
+/* Header */
+.header{text-align:center;margin-bottom:20px}
+.header h1{font-size:clamp(1.4rem,3vw,2rem);font-weight:800}
+.header h1 span{color:var(--accent)}
+.header p{color:var(--text2);font-size:0.9rem;margin-top:4px}
+
+/* System selector */
+.system-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px}
+.system-chip{
+  background:var(--surface);border:1px solid var(--surface2);color:var(--text2);
+  padding:8px 16px;border-radius:20px;cursor:pointer;font-size:0.8rem;font-weight:600;
+  transition:all 0.15s;min-height:40px;font-family:inherit
+}
+.system-chip:hover{color:var(--text);border-color:var(--accent)}
+.system-chip.active{background:var(--accent);color:#0f172a;border-color:var(--accent)}
+
+/* Emulator container */
+.emu-wrap{
+  background:var(--surface);border:1px solid var(--surface2);
+  border-radius:var(--radius);overflow:hidden;position:relative;
+  max-width:800px;margin:0 auto
+}
+.emu-inner{
+  width:100%;aspect-ratio:4/3;position:relative;
+  display:flex;align-items:center;justify-content:center
+}
+#game{
+  width:100%;height:100%;position:absolute;top:0;left:0
+}
+
+/* Drop zone overlay */
+.drop-zone{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  background:rgba(15,23,42,0.9);z-index:5;pointer-events:none;
+  transition:opacity 0.3s
+}
+.drop-zone.hidden{opacity:0}
+.drop-zone .dz-icon{font-size:3rem}
+.drop-zone .dz-text{font-size:1rem;font-weight:600;color:var(--text)}
+.drop-zone .dz-sub{font-size:0.8rem;color:var(--text2)}
+.drop-zone .dz-formats{font-size:0.7rem;color:var(--text2);margin-top:4px}
+
+/* Controls bar */
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  border-radius:var(--radius);font-weight:600;font-size:0.85rem;
+  cursor:pointer;border:none;min-height:40px;transition:all 0.15s;
+  font-family:inherit;text-decoration:none
+}
+.btn-primary{background:var(--accent);color:#0f172a}
+.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--surface2)}
+.btn-outline:hover{border-color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:0.75rem;min-height:32px}
+
+/* ROM links */
+.rom-section{margin-top:20px}
+.rom-section h3{font-size:0.9rem;color:var(--text2);margin-bottom:8px;text-align:center}
+.rom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.rom-card{
+  background:var(--surface);border:1px solid var(--surface2);border-radius:8px;
+  padding:12px;cursor:pointer;transition:all 0.15s;text-decoration:none;color:var(--text)
+}
+.rom-card:hover{border-color:var(--accent);background:var(--surface2)}
+.rom-card .rom-title{font-size:0.85rem;font-weight:700}
+.rom-card .rom-desc{font-size:0.7rem;color:var(--text2);margin-top:2px}
+.rom-card .rom-system{font-size:0.65rem;color:var(--accent);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px}
+
+/* Info */
+.info-box{
+  background:var(--surface);border:1px solid var(--surface2);border-radius:var(--radius);
+  padding:14px 18px;margin-top:16px;text-align:center
+}
+.info-box p{font-size:0.8rem;color:var(--text2)}
+.info-box a{color:var(--accent);text-decoration:none}
+.info-box a:hover{text-decoration:underline}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;
+  background:var(--surface);border:1px solid var(--surface2);border-radius:8px;
+  padding:10px 18px;font-size:13px;font-weight:600;color:var(--text);
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Mobile */
+@media(max-width:600px){
+  .system-chip{padding:6px 12px;font-size:0.7rem}
+  .rom-grid{grid-template-columns:1fr 1fr}
+  .emu-wrap{border-radius:8px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <a href="index.html" class="logo">⚡ TradeScheduler</a>
+    <div class="nav-tabs">
+      <a href="index.html">Calendar</a>
+      <a href="index.html#mapView">Map</a>
+      <a href="demo.html">Dispatch</a>
+      <a href="retro.html" class="active">🎮 Arcade</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="header">
+    <h1>🎮 <span>Retro Arcade</span></h1>
+    <p>Drag & drop a ROM file, or pick a system below</p>
+  </div>
+
+  <div class="system-bar" id="systemBar">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="emu-wrap">
+    <div class="emu-inner">
+      <div id="game"></div>
+      <div class="drop-zone" id="dropZone">
+        <div class="dz-icon">📂</div>
+        <div class="dz-text">Drop ROM file here</div>
+        <div class="dz-sub">or click to browse</div>
+        <div class="dz-formats" id="dzFormats">.nes .smc .gb .gbc .gba .md .bin .iso</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('romInput').click()">📁 Load ROM</button>
+    <button class="btn btn-outline btn-sm" id="btnFullscreen" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+    <button class="btn btn-outline btn-sm" id="btnReset" onclick="resetEmulator()">↺ Reset</button>
+    <input type="file" id="romInput" accept=".nes,.smc,.sfc,.gb,.gbc,.gba,.md,.gen,.bin,.iso,.chd,.zip" style="display:none" onchange="handleFileSelect(event)">
+  </div>
+
+  <div class="rom-section">
+    <h3>🎁 Free Homebrew ROMs (click to load)</h3>
+    <div class="rom-grid" id="romGrid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <div class="info-box">
+    <p>💡 <strong>No ROMs included.</strong> Drag your own legally-owned ROM files, or try the free homebrew games above. More at <a href="https://itch.io/games/free/tag-nes" target="_blank">itch.io</a> · <a href="https://hh.gbdev.io" target="_blank">Homebrew Hub</a> · <a href="https://www.zophar.net/pdroms/nes.html" target="_blank">Zophar PD ROMs</a></p>
+    <p style="margin-top:6px">🎮 <strong>Controls:</strong> Arrow keys / WASD = D-pad · Enter = Start · Shift = Select · Z = A · X = B · Controller supported</p>
+  </div>
+</div>
+
+<script>
+// ── System definitions ──
+const SYSTEMS = [
+  { id: 'nes',      name: 'NES',       icon: '🕹️',  exts: ['.nes'],            core: 'nes' },
+  { id: 'snes',     name: 'SNES',      icon: '🎮',  exts: ['.smc','.sfc'],     core: 'snes' },
+  { id: 'gb',       name: 'Game Boy',  icon: '👾',  exts: ['.gb'],             core: 'gb' },
+  { id: 'gbc',      name: 'GBC',       icon: '🎨',  exts: ['.gbc'],            core: 'gbc' },
+  { id: 'gba',      name: 'GBA',       icon: '📱',  exts: ['.gba'],            core: 'gba' },
+  { id: 'genesis',  name: 'Genesis',   icon: '🦔',  exts: ['.md','.gen','.bin'], core: 'genesis' },
+  { id: 'n64',      name: 'N64',       icon: '🔷',  exts: ['.n64','.z64'],     core: 'n64' },
+  { id: 'psx',      name: 'PSX',       icon: '💿',  exts: ['.iso','.bin','.cue','.chd'], core: 'psx' },
+];
+
+// ── Free homebrew ROMs (direct download links) ──
+const HOME_BREWS = [
+  { title: 'Alter Ego',      desc: 'Puzzle platformer',           system: 'nes', url: 'https://hh.gbdev.io/rom/alter-ego' },
+  { title: 'From Below',     desc: 'Tetris-like with kraken',     system: 'nes', url: 'https://hh.gbdev.io/rom/from-below' },
+  { title: 'Cheril Perils',  desc: '8-bit platformer',            system: 'nes', url: 'https://hh.gbdev.io/rom/cheril-perils' },
+  { title: 'Dangan GB',      desc: 'Bullet hell shooter',         system: 'gb',  url: 'https://hh.gbdev.io/rom/dangan-gb' },
+  { title: 'Tobu Tobu Girl', desc: 'Cute platformer',             system: 'gb',  url: 'https://hh.gbdev.io/rom/tobu-tobu-girl' },
+  { title: 'µCity',          desc: 'SimCity for Game Boy',        system: 'gb',  url: 'https://hh.gbdev.io/rom/microcity' },
+];
+
+let currentSystem = 'nes';
+let emulatorLoaded = false;
+let ejsInstance = null;
+
+// ── Build system chips ──
+function buildSystemBar() {
+  const bar = document.getElementById('systemBar');
+  bar.innerHTML = SYSTEMS.map(s => 
+    `<button class="system-chip${s.id === currentSystem ? ' active' : ''}" 
+             onclick="selectSystem('${s.id}')" title="${s.name}">
+       ${s.icon} ${s.name}
+     </button>`
+  ).join('');
+}
+
+// ── Build ROM grid ──
+function buildRomGrid() {
+  const grid = document.getElementById('romGrid');
+  grid.innerHTML = HOME_BREWS.map(r => {
+    const sys = SYSTEMS.find(s => s.id === r.system);
+    return `<a class="rom-card" href="#" onclick="loadRemoteROM('${r.url}','${r.system}');return false">
+      <div class="rom-title">${r.title}</div>
+      <div class="rom-desc">${r.desc}</div>
+      <div class="rom-system">${sys ? sys.icon + ' ' + sys.name : r.system}</div>
+    </a>`;
+  }).join('');
+}
+
+// ── Update drop zone formats ──
+function updateDropZone() {
+  const sys = SYSTEMS.find(s => s.id === currentSystem);
+  document.getElementById('dzFormats').textContent = sys ? sys.exts.join(' ') : '';
+}
+
+// ── Select system ──
+function selectSystem(sysId) {
+  currentSystem = sysId;
+  buildSystemBar();
+  updateDropZone();
+  loadEmulator();
+}
+
+// ── Load emulator ──
+function loadEmulator(gameUrl) {
+  const sys = SYSTEMS.find(s => s.id === currentSystem);
+  if (!sys) return;
+
+  // Clean up previous instance
+  const gameDiv = document.getElementById('game');
+  gameDiv.innerHTML = '';
+
+  // Set globals EmulatorJS reads
+  window.EJS_player = '#game';
+  window.EJS_core = sys.core;
+  window.EJS_gameUrl = gameUrl || '';
+  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+  window.EJS_startOnLoaded = !!gameUrl;
+  window.EJS_onload = 'onEmulatorReady';
+  window.EJS_lightgun = false;
+  window.EJS_mouse = false;
+  window.EJS_threads = false;
+  window.EJS_volume = 0.8;
+  window.EJS_defaultOptions = {
+    'save-state': true,
+    'load-state': true,
+    'screenshot': true,
+    'quick-state': true,
+    'cheat': true,
+  };
+
+  // Hide drop zone
+  if (gameUrl) {
+    document.getElementById('dropZone').classList.add('hidden');
+  }
+
+  // Load the emulator script
+  const scriptId = 'emulatorjs-loader';
+  const existing = document.getElementById(scriptId);
+  if (existing) existing.remove();
+
+  const script = document.createElement('script');
+  script.id = scriptId;
+  script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+  script.onerror = () => showToast('⚠️ Failed to load emulator. Check your connection.');
+  document.body.appendChild(script);
+
+  emulatorLoaded = true;
+}
+
+// ── Emulator ready callback ──
+function onEmulatorReady() {
+  document.getElementById('dropZone').classList.add('hidden');
+  showToast('✅ Emulator ready — game loaded!');
+}
+
+// ── Handle file select ──
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Auto-detect system from extension
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  for (const sys of SYSTEMS) {
+    if (sys.exts.includes(ext)) {
+      if (sys.id !== currentSystem) {
+        currentSystem = sys.id;
+        buildSystemBar();
+        updateDropZone();
+      }
+      break;
+    }
+  }
+
+  const url = URL.createObjectURL(file);
+  loadEmulator(url);
+  showToast(`📂 Loaded: ${file.name}`);
+}
+
+// ── Load remote ROM ──
+async function loadRemoteROM(url, system) {
+  if (system && system !== currentSystem) {
+    currentSystem = system;
+    buildSystemBar();
+    updateDropZone();
+  }
+  showToast('⏳ Downloading ROM...');
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Failed');
+    const blob = await resp.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    loadEmulator(blobUrl);
+  } catch(e) {
+    showToast('⚠️ Failed to download ROM. Try dragging your own file.');
+  }
+}
+
+// ── Reset emulator ──
+function resetEmulator() {
+  document.getElementById('dropZone').classList.remove('hidden');
+  document.getElementById('game').innerHTML = '';
+  const script = document.getElementById('emulatorjs-loader');
+  if (script) script.remove();
+  emulatorLoaded = false;
+  window.EJS_gameUrl = '';
+  loadEmulator();
+}
+
+// ── Fullscreen ──
+function toggleFullscreen() {
+  const wrap = document.querySelector('.emu-wrap');
+  if (!document.fullscreenElement) {
+    wrap.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ── Drag and drop on the whole emulator wrap ──
+const emuWrap = document.querySelector('.emu-wrap');
+emuWrap.addEventListener('dragover', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  emuWrap.style.borderColor = 'var(--accent)';
+});
+emuWrap.addEventListener('dragleave', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  emuWrap.style.borderColor = 'var(--surface2)';
+});
+emuWrap.addEventListener('drop', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  emuWrap.style.borderColor = 'var(--surface2)';
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  for (const sys of SYSTEMS) {
+    if (sys.exts.includes(ext)) {
+      if (sys.id !== currentSystem) {
+        currentSystem = sys.id;
+        buildSystemBar();
+        updateDropZone();
+      }
+      break;
+    }
+  }
+
+  const url = URL.createObjectURL(file);
+  loadEmulator(url);
+  showToast(`📂 Loaded: ${file.name}`);
+});
+
+// ── Click on drop zone to open file picker ──
+document.getElementById('dropZone').addEventListener('click', () => {
+  document.getElementById('romInput').click();
+});
+
+// ── Init ──
+buildSystemBar();
+buildRomGrid();
+updateDropZone();
+loadEmulator(); // Load with empty gameUrl — shows drop zone
+</script>
+
+</body>
+</html>
