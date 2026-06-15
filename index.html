@@ -223,6 +223,18 @@ nav .inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;align-item
   .hero h1{font-size:1.4rem}
   .nav-tabs button{font-size:0.75rem;padding:6px 10px}
 }
+
+#visits-badge {
+  position:fixed;bottom:12px;right:12px;z-index:200;
+  background:var(--surface);color:var(--text2);
+  border:1px solid var(--surface2);border-radius:20px;
+  padding:4px 12px;font-size:11px;font-weight:500;
+  letter-spacing:0.3px;opacity:0.7;
+  display:flex;align-items:center;gap:6px;
+  transition:opacity 0.3s;
+}
+#visits-badge span{color:var(--accent);font-weight:700}
+
 </style>
 </head>
 <body>
@@ -841,6 +853,18 @@ setAppView(data.appView);
 <script>
 if("serviceWorker" in navigator){navigator.serviceWorker.register("/TradeScheduler/sw.js").then(r=>console.log("SW registered")).catch(e=>console.log("SW failed",e))}
 </script>
-<div id="hitcounter" style="position:fixed;bottom:10px;right:10px;z-index:200;opacity:0.6;pointer-events:none"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fyourdevontechmate.github.io%2FTradeScheduler%2F&amp;count_bg=%23334155&amp;title_bg=%230f172a&amp;title=visits&amp;edge_flat=false" alt="hit counter" style="height:20px"></div>
+
+<div id="visits-badge" style="display:none">👁 <span id="visits-count">—</span> visits</div>
+<script>
+(function(){
+  var b=document.getElementById('visits-badge');
+  var c=document.getElementById('visits-count');
+  fetch('https://api.countapi.xyz/hit/tradescheduler/visits')
+    .then(function(r){return r.json()})
+    .then(function(d){c.textContent=d.value;b.style.display='flex'})
+    .catch(function(){b.style.display='flex';c.textContent='...'});
+})();
+</script>
+
 </body>
 </html>
