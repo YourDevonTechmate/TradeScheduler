@@ -860,9 +860,9 @@ if("serviceWorker" in navigator){navigator.serviceWorker.register("/TradeSchedul
 (function(){
   var b=document.getElementById('visits-badge');
   var c=document.getElementById('visits-count');
-  fetch('https://api.countapi.xyz/hit/tradescheduler/visits')
+  fetch('https://api.counterapi.dev/v1/tradescheduler/visits/up')
     .then(function(r){return r.json()})
-    .then(function(d){c.textContent=d.value;b.style.display='flex'})
+    .then(function(d){c.textContent=d.count;b.style.display='flex'})
     .catch(function(){b.style.display='flex';c.textContent='...'});
 })();
 </script>
